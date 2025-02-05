@@ -966,7 +966,8 @@
       <p id="191aed2d-4470-8045-bbe4-ff727b3619b2" class=""><mark class="highlight-default">2、</mark><mark
           class="highlight-orange">【可选】</mark>将被修改的代码添加到暂存区</p>
       <p id="191aed2d-4470-807f-8aac-e28a3d7a4a2b" class="">3、<mark class="highlight-teal">【自动】</mark>对暂存区进行代码格式化和检查
-        <mark class="highlight-gray">(检查无误进入下一步) [prettier+eslint+lint-staged]</mark></p>
+        <mark class="highlight-gray">(检查无误进入下一步) [prettier+eslint+lint-staged]</mark>
+      </p>
       <p id="191aed2d-4470-80c6-abad-df9f9d64e8d9" class=""><mark class="highlight-default">4、</mark><mark
           class="highlight-orange">【可选】</mark>进行引导式提交，对 commit 信息格式化 <mark
           class="highlight-gray">[commitizen+cz-git]</mark></p>
@@ -1762,7 +1763,7 @@ const getCacheScope = () =&gt; {
     return defaultScopeArr
   } else {
     const cacheScopeArr = JSON.parse(fs.readFileSync(__SCOPE_CACHE_PATH, &quot;utf8&quot;))
-    return [...new Set([defaultScopeArr, ...cacheScopeArr])]
+    return [...new Set([...defaultScopeArr, ...cacheScopeArr])]
   }
 }
 //#endregion
