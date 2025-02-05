@@ -1,0 +1,47 @@
+{
+  "name": "commit",
+  "version": "1.0.0",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "lint-staged": "lint-staged",
+    "check:type": "vue-tsc --build --noEmit --force",
+    "check:prettier": "prettier --check .",
+    "check": "eslint .",
+    "lint": "eslint . --fix",
+    "lint:prettier": "prettier . --write",
+    "lint:commitlint": "commitlint --edit $1",
+    "commit": "git add . && pnpm exec lint-staged && cz",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.{cjs,mjs,js,jsx,tsx,ts,less,md,json}": [
+      "pnpm exec eslint --fix"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-git"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "@commitlint/types": "^19.5.0",
+    "@eslint/js": "^9.19.0",
+    "@typescript-eslint/eslint-plugin": "^8.22.0",
+    "@typescript-eslint/parser": "^8.22.0",
+    "cz-git": "^1.11.0",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-vue": "^9.32.0",
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "prettier": "^3.4.2",
+    "typescript-eslint": "^8.22.0",
+    "vue-eslint-parser": "^9.4.3"
+  }
+}
