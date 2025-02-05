@@ -35,6 +35,5 @@ module.exports = {
         "revert", // 回滚提交的代码
       ],
     ],
-    "revert-case": [0], // 关闭对 `revert` 提交的大小写检查
   },
 }

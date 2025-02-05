@@ -1,690 +1,906 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>代码审查和git commit引导、校验工作流</title><style>
-/* cspell:disable-file */
-/* webkit printing magic: print all background colors */
-html {
-	-webkit-print-color-adjust: exact;
-}
-* {
-	box-sizing: border-box;
-	-webkit-print-color-adjust: exact;
-}
-
-html,
-body {
-	margin: 0;
-	padding: 0;
-}
-@media only screen {
-	body {
-		margin: 2em auto;
-		max-width: 900px;
-		color: rgb(55, 53, 47);
-	}
-}
-
-body {
-	line-height: 1.5;
-	white-space: pre-wrap;
-}
-
-a,
-a.visited {
-	color: inherit;
-	text-decoration: underline;
-}
-
-.pdf-relative-link-path {
-	font-size: 80%;
-	color: #444;
-}
-
-h1,
-h2,
-h3 {
-	letter-spacing: -0.01em;
-	line-height: 1.2;
-	font-weight: 600;
-	margin-bottom: 0;
-}
-
-.page-title {
-	font-size: 2.5rem;
-	font-weight: 700;
-	margin-top: 0;
-	margin-bottom: 0.75em;
-}
-
-h1 {
-	font-size: 1.875rem;
-	margin-top: 1.875rem;
-}
-
-h2 {
-	font-size: 1.5rem;
-	margin-top: 1.5rem;
-}
-
-h3 {
-	font-size: 1.25rem;
-	margin-top: 1.25rem;
-}
-
-.source {
-	border: 1px solid #ddd;
-	border-radius: 3px;
-	padding: 1.5em;
-	word-break: break-all;
-}
-
-.callout {
-	border-radius: 3px;
-	padding: 1rem;
-}
-
-figure {
-	margin: 1.25em 0;
-	page-break-inside: avoid;
-}
-
-figcaption {
-	opacity: 0.5;
-	font-size: 85%;
-	margin-top: 0.5em;
-}
-
-mark {
-	background-color: transparent;
-}
-
-.indented {
-	padding-left: 1.5em;
-}
-
-hr {
-	background: transparent;
-	display: block;
-	width: 100%;
-	height: 1px;
-	visibility: visible;
-	border: none;
-	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
-}
-
-img {
-	max-width: 100%;
-}
-
-@media only print {
-	img {
-		max-height: 100vh;
-		object-fit: contain;
-	}
-}
-
-@page {
-	margin: 1in;
-}
-
-.collection-content {
-	font-size: 0.875rem;
-}
-
-.column-list {
-	display: flex;
-	justify-content: space-between;
-}
-
-.column {
-	padding: 0 1em;
-}
-
-.column:first-child {
-	padding-left: 0;
-}
-
-.column:last-child {
-	padding-right: 0;
-}
-
-.table_of_contents-item {
-	display: block;
-	font-size: 0.875rem;
-	line-height: 1.3;
-	padding: 0.125rem;
-}
-
-.table_of_contents-indent-1 {
-	margin-left: 1.5rem;
-}
-
-.table_of_contents-indent-2 {
-	margin-left: 3rem;
-}
-
-.table_of_contents-indent-3 {
-	margin-left: 4.5rem;
-}
-
-.table_of_contents-link {
-	text-decoration: none;
-	opacity: 0.7;
-	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
-}
-
-table,
-th,
-td {
-	border: 1px solid rgba(55, 53, 47, 0.09);
-	border-collapse: collapse;
-}
-
-table {
-	border-left: none;
-	border-right: none;
-}
-
-th,
-td {
-	font-weight: normal;
-	padding: 0.25em 0.5em;
-	line-height: 1.5;
-	min-height: 1.5em;
-	text-align: left;
-}
-
-th {
-	color: rgba(55, 53, 47, 0.6);
-}
-
-ol,
-ul {
-	margin: 0;
-	margin-block-start: 0.6em;
-	margin-block-end: 0.6em;
-}
-
-li > ol:first-child,
-li > ul:first-child {
-	margin-block-start: 0.6em;
-}
-
-ul > li {
-	list-style: disc;
-}
-
-ul.to-do-list {
-	padding-inline-start: 0;
-}
-
-ul.to-do-list > li {
-	list-style: none;
-}
-
-.to-do-children-checked {
-	text-decoration: line-through;
-	opacity: 0.375;
-}
-
-ul.toggle > li {
-	list-style: none;
-}
-
-ul {
-	padding-inline-start: 1.7em;
-}
-
-ul > li {
-	padding-left: 0.1em;
-}
-
-ol {
-	padding-inline-start: 1.6em;
-}
-
-ol > li {
-	padding-left: 0.2em;
-}
-
-.mono ol {
-	padding-inline-start: 2em;
-}
-
-.mono ol > li {
-	text-indent: -0.4em;
-}
-
-.toggle {
-	padding-inline-start: 0em;
-	list-style-type: none;
-}
-
-/* Indent toggle children */
-.toggle > li > details {
-	padding-left: 1.7em;
-}
-
-.toggle > li > details > summary {
-	margin-left: -1.1em;
-}
-
-.selected-value {
-	display: inline-block;
-	padding: 0 0.5em;
-	background: rgba(206, 205, 202, 0.5);
-	border-radius: 3px;
-	margin-right: 0.5em;
-	margin-top: 0.3em;
-	margin-bottom: 0.3em;
-	white-space: nowrap;
-}
-
-.collection-title {
-	display: inline-block;
-	margin-right: 1em;
-}
-
-.page-description {
-	margin-bottom: 2em;
-}
-
-.simple-table {
-	margin-top: 1em;
-	font-size: 0.875rem;
-	empty-cells: show;
-}
-.simple-table td {
-	height: 29px;
-	min-width: 120px;
-}
-
-.simple-table th {
-	height: 29px;
-	min-width: 120px;
-}
-
-.simple-table-header-color {
-	background: rgb(247, 246, 243);
-	color: black;
-}
-.simple-table-header {
-	font-weight: 500;
-}
-
-time {
-	opacity: 0.5;
-}
-
-.icon {
-	display: inline-block;
-	max-width: 1.2em;
-	max-height: 1.2em;
-	text-decoration: none;
-	vertical-align: text-bottom;
-	margin-right: 0.5em;
-}
-
-img.icon {
-	border-radius: 3px;
-}
-
-.user-icon {
-	width: 1.5em;
-	height: 1.5em;
-	border-radius: 100%;
-	margin-right: 0.5rem;
-}
-
-.user-icon-inner {
-	font-size: 0.8em;
-}
-
-.text-icon {
-	border: 1px solid #000;
-	text-align: center;
-}
-
-.page-cover-image {
-	display: block;
-	object-fit: cover;
-	width: 100%;
-	max-height: 30vh;
-}
-
-.page-header-icon {
-	font-size: 3rem;
-	margin-bottom: 1rem;
-}
-
-.page-header-icon-with-cover {
-	margin-top: -0.72em;
-	margin-left: 0.07em;
-}
-
-.page-header-icon img {
-	border-radius: 3px;
-}
-
-.link-to-page {
-	margin: 1em 0;
-	padding: 0;
-	border: none;
-	font-weight: 500;
-}
-
-p > .user {
-	opacity: 0.5;
-}
-
-td > .user,
-td > time {
-	white-space: nowrap;
-}
-
-input[type="checkbox"] {
-	transform: scale(1.5);
-	margin-right: 0.6em;
-	vertical-align: middle;
-}
-
-p {
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
-}
-
-.image {
-	border: none;
-	margin: 1.5em 0;
-	padding: 0;
-	border-radius: 0;
-	text-align: center;
-}
-
-.code,
-code {
-	background: rgba(135, 131, 120, 0.15);
-	border-radius: 3px;
-	padding: 0.2em 0.4em;
-	border-radius: 3px;
-	font-size: 85%;
-	tab-size: 2;
-}
-
-code {
-	color: #eb5757;
-}
-
-.code {
-	padding: 1.5em 1em;
-}
-
-.code-wrap {
-	white-space: pre-wrap;
-	word-break: break-all;
-}
-
-.code > code {
-	background: none;
-	padding: 0;
-	font-size: 100%;
-	color: inherit;
-}
-
-blockquote {
-	font-size: 1.25em;
-	margin: 1em 0;
-	padding-left: 1em;
-	border-left: 3px solid rgb(55, 53, 47);
-}
-
-.bookmark {
-	text-decoration: none;
-	max-height: 8em;
-	padding: 0;
-	display: flex;
-	width: 100%;
-	align-items: stretch;
-}
-
-.bookmark-title {
-	font-size: 0.85em;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	height: 1.75em;
-	white-space: nowrap;
-}
-
-.bookmark-text {
-	display: flex;
-	flex-direction: column;
-}
-
-.bookmark-info {
-	flex: 4 1 180px;
-	padding: 12px 14px 14px;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-}
-
-.bookmark-image {
-	width: 33%;
-	flex: 1 1 180px;
-	display: block;
-	position: relative;
-	object-fit: cover;
-	border-radius: 1px;
-}
-
-.bookmark-description {
-	color: rgba(55, 53, 47, 0.6);
-	font-size: 0.75em;
-	overflow: hidden;
-	max-height: 4.5em;
-	word-break: break-word;
-}
-
-.bookmark-href {
-	font-size: 0.75em;
-	margin-top: 0.25em;
-}
-
-.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
-.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
-.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
-.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
-.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
-.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
-.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
-.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
-.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
-.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
-.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
-.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
-.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
-.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
-.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
-.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
-.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
-.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
-.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
-.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
-.highlight-default {
-	color: rgba(55, 53, 47, 1);
-}
-.highlight-gray {
-	color: rgba(120, 119, 116, 1);
-	fill: rgba(120, 119, 116, 1);
-}
-.highlight-brown {
-	color: rgba(159, 107, 83, 1);
-	fill: rgba(159, 107, 83, 1);
-}
-.highlight-orange {
-	color: rgba(217, 115, 13, 1);
-	fill: rgba(217, 115, 13, 1);
-}
-.highlight-yellow {
-	color: rgba(203, 145, 47, 1);
-	fill: rgba(203, 145, 47, 1);
-}
-.highlight-teal {
-	color: rgba(68, 131, 97, 1);
-	fill: rgba(68, 131, 97, 1);
-}
-.highlight-blue {
-	color: rgba(51, 126, 169, 1);
-	fill: rgba(51, 126, 169, 1);
-}
-.highlight-purple {
-	color: rgba(144, 101, 176, 1);
-	fill: rgba(144, 101, 176, 1);
-}
-.highlight-pink {
-	color: rgba(193, 76, 138, 1);
-	fill: rgba(193, 76, 138, 1);
-}
-.highlight-red {
-	color: rgba(212, 76, 71, 1);
-	fill: rgba(212, 76, 71, 1);
-}
-.highlight-default_background {
-	color: rgba(55, 53, 47, 1);
-}
-.highlight-gray_background {
-	background: rgba(241, 241, 239, 1);
-}
-.highlight-brown_background {
-	background: rgba(244, 238, 238, 1);
-}
-.highlight-orange_background {
-	background: rgba(251, 236, 221, 1);
-}
-.highlight-yellow_background {
-	background: rgba(251, 243, 219, 1);
-}
-.highlight-teal_background {
-	background: rgba(237, 243, 236, 1);
-}
-.highlight-blue_background {
-	background: rgba(231, 243, 248, 1);
-}
-.highlight-purple_background {
-	background: rgba(244, 240, 247, 0.8);
-}
-.highlight-pink_background {
-	background: rgba(249, 238, 243, 0.8);
-}
-.highlight-red_background {
-	background: rgba(253, 235, 236, 1);
-}
-.block-color-default {
-	color: inherit;
-	fill: inherit;
-}
-.block-color-gray {
-	color: rgba(120, 119, 116, 1);
-	fill: rgba(120, 119, 116, 1);
-}
-.block-color-brown {
-	color: rgba(159, 107, 83, 1);
-	fill: rgba(159, 107, 83, 1);
-}
-.block-color-orange {
-	color: rgba(217, 115, 13, 1);
-	fill: rgba(217, 115, 13, 1);
-}
-.block-color-yellow {
-	color: rgba(203, 145, 47, 1);
-	fill: rgba(203, 145, 47, 1);
-}
-.block-color-teal {
-	color: rgba(68, 131, 97, 1);
-	fill: rgba(68, 131, 97, 1);
-}
-.block-color-blue {
-	color: rgba(51, 126, 169, 1);
-	fill: rgba(51, 126, 169, 1);
-}
-.block-color-purple {
-	color: rgba(144, 101, 176, 1);
-	fill: rgba(144, 101, 176, 1);
-}
-.block-color-pink {
-	color: rgba(193, 76, 138, 1);
-	fill: rgba(193, 76, 138, 1);
-}
-.block-color-red {
-	color: rgba(212, 76, 71, 1);
-	fill: rgba(212, 76, 71, 1);
-}
-.block-color-default_background {
-	color: inherit;
-	fill: inherit;
-}
-.block-color-gray_background {
-	background: rgba(241, 241, 239, 1);
-}
-.block-color-brown_background {
-	background: rgba(244, 238, 238, 1);
-}
-.block-color-orange_background {
-	background: rgba(251, 236, 221, 1);
-}
-.block-color-yellow_background {
-	background: rgba(251, 243, 219, 1);
-}
-.block-color-teal_background {
-	background: rgba(237, 243, 236, 1);
-}
-.block-color-blue_background {
-	background: rgba(231, 243, 248, 1);
-}
-.block-color-purple_background {
-	background: rgba(244, 240, 247, 0.8);
-}
-.block-color-pink_background {
-	background: rgba(249, 238, 243, 0.8);
-}
-.block-color-red_background {
-	background: rgba(253, 235, 236, 1);
-}
-.select-value-color-uiBlue { background-color: rgba(35, 131, 226, .07); }
-.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
-.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
-.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
-.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
-.select-value-color-transparentGray { background-color: rgba(227, 226, 224, 0); }
-.select-value-color-translucentGray { background-color: rgba(0, 0, 0, 0.06); }
-.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
-.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
-.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
-.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
-.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
-.select-value-color-pageGlass { background-color: undefined; }
-.select-value-color-washGlass { background-color: undefined; }
-
-.checkbox {
-	display: inline-flex;
-	vertical-align: text-bottom;
-	width: 16;
-	height: 16;
-	background-size: 16px;
-	margin-left: 2px;
-	margin-right: 5px;
-}
-
-.checkbox-on {
-	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
-}
-
-.checkbox-off {
-	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
-}
-	
-</style></head><body><article id="190aed2d-4470-8078-bb58-fe19bdfe0d87" class="page sans"><header><img class="page-cover-image" src="%E5%A3%81%E7%BA%B878.png" style="object-position:center 40.62%"/><div class="page-header-icon page-header-icon-with-cover"><span class="icon">📑</span></div><h1 class="page-title">代码审查和git commit引导、校验工作流</h1><p class="page-description"></p></header><div class="page-body"><h3 id="191aed2d-4470-80ca-92c9-cf57c5a9f3e9" class="">引言</h3><figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex" id="191aed2d-4470-809c-9646-da47cf3c4bd2"><div style="font-size:1.5em"><span class="icon">😀</span></div><div style="width:100%">注意：本文没有过多延伸，只涉及部分注意事项，需要一定的前端基础；<p id="191aed2d-4470-80f6-aae0-ca84cec5de92" class="">文章内容仅代表个人见解，如有错漏之处欢迎指出。</p><blockquote id="191aed2d-4470-802b-b57d-e98fb6b7aba0" class="">此工作流主要使用如下库：<br/>prettier：代码格式化<br/><p id="191aed2d-4470-8063-8223-ed6cf0b122d1" class="">eslint：代码检查<br/>lint-staged：检查暂存区代码<br/>commitlint：git commit 信息格式校验<br/></p><p id="191aed2d-4470-80b8-92b1-d8d37bf1d0c0" class="">commitizen ：cz-git 必需库<br/>cz-git：引导式 git 提交工具<br/></p><p id="191aed2d-4470-801f-bd95-f3eb54095948" class="">husky：Git hooks 钩子工具,用于在 Git 操作前后执行自定义脚本</p></blockquote></div></figure><p id="191aed2d-4470-80fa-991f-f7bd346ea2b6" class="">
-</p><h1 id="191aed2d-4470-80b5-b7a4-c6f76eb81957" class="">一、说明</h1><h2 id="191aed2d-4470-80bf-809c-eab9911f4be8" class="">（一）项目环境及结构</h2><h3 id="191aed2d-4470-8094-89a9-fb2f0193bc1f" class="">1、项目环境</h3><p id="191aed2d-4470-8018-821c-e7113e38ff85" class="">
-</p><p id="191aed2d-4470-808b-ba5f-ee0a48a263d3" class="">本示例环境如下表：</p><table id="191aed2d-4470-8081-a449-ea2ff29bab92" class="simple-table"><thead class="simple-table-header"><tr id="191aed2d-4470-80ff-9863-c4e84afefef6"><th id="lx|_" class="simple-table-header-color simple-table-header">环境/工具</th><th id="@Dde" class="simple-table-header-color simple-table-header">版本</th></tr></thead><tbody><tr id="191aed2d-4470-8073-a2c9-ee52c644f42c"><th id="lx|_" class="simple-table-header-color simple-table-header">操作系统</th><td id="@Dde" class="">Windows 10</td></tr><tr id="191aed2d-4470-80b0-b45f-fb93a4e24fda"><th id="lx|_" class="simple-table-header-color simple-table-header">编译器</th><td id="@Dde" class="">VScode 1.96.4</td></tr><tr id="191aed2d-4470-80b5-981f-e3d631a6318b"><th id="lx|_" class="simple-table-header-color simple-table-header">Node</th><td id="@Dde" class="">20.16.0</td></tr><tr id="191aed2d-4470-800a-97c4-c1c7ec7f6806"><th id="lx|_" class="simple-table-header-color simple-table-header">项目环境</th><td id="@Dde" class="">Vue3 + TypeScript</td></tr></tbody></table><p id="191aed2d-4470-8006-8797-d4232f031e04" class="">
-</p><h3 id="191aed2d-4470-80ce-9807-f015af1cc4cd" class="">2、项目结构</h3><p id="191aed2d-4470-8064-9ce1-c19b6d98e226" class="">项目结构如下：</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8060-b836-c4fffff7bd87" class="code"><code class="language-CSS">│── .husky  //需要新建的husky文件夹
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>代码审查和git commit引导、校验工作流</title>
+  <style>
+    /* cspell:disable-file */
+    /* webkit printing magic: print all background colors */
+    html {
+      -webkit-print-color-adjust: exact;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    @media only screen {
+      body {
+        margin: 2em auto;
+        max-width: 900px;
+        color: rgb(55, 53, 47);
+      }
+    }
+
+    body {
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    a,
+    a.visited {
+      color: inherit;
+      text-decoration: underline;
+    }
+
+    .pdf-relative-link-path {
+      font-size: 80%;
+      color: #444;
+    }
+
+    h1,
+    h2,
+    h3 {
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      font-weight: 600;
+      margin-bottom: 0;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-top: 0;
+      margin-bottom: 0.75em;
+    }
+
+    h1 {
+      font-size: 1.875rem;
+      margin-top: 1.875rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-top: 1.25rem;
+    }
+
+    .source {
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 1.5em;
+      word-break: break-all;
+    }
+
+    .callout {
+      border-radius: 3px;
+      padding: 1rem;
+    }
+
+    figure {
+      margin: 1.25em 0;
+      page-break-inside: avoid;
+    }
+
+    figcaption {
+      opacity: 0.5;
+      font-size: 85%;
+      margin-top: 0.5em;
+    }
+
+    mark {
+      background-color: transparent;
+    }
+
+    .indented {
+      padding-left: 1.5em;
+    }
+
+    hr {
+      background: transparent;
+      display: block;
+      width: 100%;
+      height: 1px;
+      visibility: visible;
+      border: none;
+      border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    @media only print {
+      img {
+        max-height: 100vh;
+        object-fit: contain;
+      }
+    }
+
+    @page {
+      margin: 1in;
+    }
+
+    .collection-content {
+      font-size: 0.875rem;
+    }
+
+    .column-list {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .column {
+      padding: 0 1em;
+    }
+
+    .column:first-child {
+      padding-left: 0;
+    }
+
+    .column:last-child {
+      padding-right: 0;
+    }
+
+    .table_of_contents-item {
+      display: block;
+      font-size: 0.875rem;
+      line-height: 1.3;
+      padding: 0.125rem;
+    }
+
+    .table_of_contents-indent-1 {
+      margin-left: 1.5rem;
+    }
+
+    .table_of_contents-indent-2 {
+      margin-left: 3rem;
+    }
+
+    .table_of_contents-indent-3 {
+      margin-left: 4.5rem;
+    }
+
+    .table_of_contents-link {
+      text-decoration: none;
+      opacity: 0.7;
+      border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+    }
+
+    table,
+    th,
+    td {
+      border: 1px solid rgba(55, 53, 47, 0.09);
+      border-collapse: collapse;
+    }
+
+    table {
+      border-left: none;
+      border-right: none;
+    }
+
+    th,
+    td {
+      font-weight: normal;
+      padding: 0.25em 0.5em;
+      line-height: 1.5;
+      min-height: 1.5em;
+      text-align: left;
+    }
+
+    th {
+      color: rgba(55, 53, 47, 0.6);
+    }
+
+    ol,
+    ul {
+      margin: 0;
+      margin-block-start: 0.6em;
+      margin-block-end: 0.6em;
+    }
+
+    li>ol:first-child,
+    li>ul:first-child {
+      margin-block-start: 0.6em;
+    }
+
+    ul>li {
+      list-style: disc;
+    }
+
+    ul.to-do-list {
+      padding-inline-start: 0;
+    }
+
+    ul.to-do-list>li {
+      list-style: none;
+    }
+
+    .to-do-children-checked {
+      text-decoration: line-through;
+      opacity: 0.375;
+    }
+
+    ul.toggle>li {
+      list-style: none;
+    }
+
+    ul {
+      padding-inline-start: 1.7em;
+    }
+
+    ul>li {
+      padding-left: 0.1em;
+    }
+
+    ol {
+      padding-inline-start: 1.6em;
+    }
+
+    ol>li {
+      padding-left: 0.2em;
+    }
+
+    .mono ol {
+      padding-inline-start: 2em;
+    }
+
+    .mono ol>li {
+      text-indent: -0.4em;
+    }
+
+    .toggle {
+      padding-inline-start: 0em;
+      list-style-type: none;
+    }
+
+    /* Indent toggle children */
+    .toggle>li>details {
+      padding-left: 1.7em;
+    }
+
+    .toggle>li>details>summary {
+      margin-left: -1.1em;
+    }
+
+    .selected-value {
+      display: inline-block;
+      padding: 0 0.5em;
+      background: rgba(206, 205, 202, 0.5);
+      border-radius: 3px;
+      margin-right: 0.5em;
+      margin-top: 0.3em;
+      margin-bottom: 0.3em;
+      white-space: nowrap;
+    }
+
+    .collection-title {
+      display: inline-block;
+      margin-right: 1em;
+    }
+
+    .page-description {
+      margin-bottom: 2em;
+    }
+
+    .simple-table {
+      margin-top: 1em;
+      font-size: 0.875rem;
+      empty-cells: show;
+    }
+
+    .simple-table td {
+      height: 29px;
+      min-width: 120px;
+    }
+
+    .simple-table th {
+      height: 29px;
+      min-width: 120px;
+    }
+
+    .simple-table-header-color {
+      background: rgb(247, 246, 243);
+      color: black;
+    }
+
+    .simple-table-header {
+      font-weight: 500;
+    }
+
+    time {
+      opacity: 0.5;
+    }
+
+    .icon {
+      display: inline-block;
+      max-width: 1.2em;
+      max-height: 1.2em;
+      text-decoration: none;
+      vertical-align: text-bottom;
+      margin-right: 0.5em;
+    }
+
+    img.icon {
+      border-radius: 3px;
+    }
+
+    .user-icon {
+      width: 1.5em;
+      height: 1.5em;
+      border-radius: 100%;
+      margin-right: 0.5rem;
+    }
+
+    .user-icon-inner {
+      font-size: 0.8em;
+    }
+
+    .text-icon {
+      border: 1px solid #000;
+      text-align: center;
+    }
+
+    .page-cover-image {
+      display: block;
+      object-fit: cover;
+      width: 100%;
+      max-height: 30vh;
+    }
+
+    .page-header-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .page-header-icon-with-cover {
+      margin-top: -0.72em;
+      margin-left: 0.07em;
+    }
+
+    .page-header-icon img {
+      border-radius: 3px;
+    }
+
+    .link-to-page {
+      margin: 1em 0;
+      padding: 0;
+      border: none;
+      font-weight: 500;
+    }
+
+    p>.user {
+      opacity: 0.5;
+    }
+
+    td>.user,
+    td>time {
+      white-space: nowrap;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.5);
+      margin-right: 0.6em;
+      vertical-align: middle;
+    }
+
+    p {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    .image {
+      border: none;
+      margin: 1.5em 0;
+      padding: 0;
+      border-radius: 0;
+      text-align: center;
+    }
+
+    .code,
+    code {
+      background: rgba(135, 131, 120, 0.15);
+      border-radius: 3px;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-size: 85%;
+      tab-size: 2;
+    }
+
+    code {
+      color: #eb5757;
+    }
+
+    .code {
+      padding: 1.5em 1em;
+    }
+
+    .code-wrap {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .code>code {
+      background: none;
+      padding: 0;
+      font-size: 100%;
+      color: inherit;
+    }
+
+    blockquote {
+      font-size: 1.25em;
+      margin: 1em 0;
+      padding-left: 1em;
+      border-left: 3px solid rgb(55, 53, 47);
+    }
+
+    .bookmark {
+      text-decoration: none;
+      max-height: 8em;
+      padding: 0;
+      display: flex;
+      width: 100%;
+      align-items: stretch;
+    }
+
+    .bookmark-title {
+      font-size: 0.85em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      height: 1.75em;
+      white-space: nowrap;
+    }
+
+    .bookmark-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bookmark-info {
+      flex: 4 1 180px;
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .bookmark-image {
+      width: 33%;
+      flex: 1 1 180px;
+      display: block;
+      position: relative;
+      object-fit: cover;
+      border-radius: 1px;
+    }
+
+    .bookmark-description {
+      color: rgba(55, 53, 47, 0.6);
+      font-size: 0.75em;
+      overflow: hidden;
+      max-height: 4.5em;
+      word-break: break-word;
+    }
+
+    .bookmark-href {
+      font-size: 0.75em;
+      margin-top: 0.25em;
+    }
+
+    .sans {
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+    }
+
+    .code {
+      font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace;
+    }
+
+    .serif {
+      font-family: Lyon-Text, Georgia, ui-serif, serif;
+    }
+
+    .mono {
+      font-family: iawriter-mono, Nitti, Menlo, Courier, monospace;
+    }
+
+    .pdf .sans {
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP';
+    }
+
+    .pdf:lang(zh-CN) .sans {
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC';
+    }
+
+    .pdf:lang(zh-TW) .sans {
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC';
+    }
+
+    .pdf:lang(ko-KR) .sans {
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR';
+    }
+
+    .pdf .code {
+      font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP';
+    }
+
+    .pdf:lang(zh-CN) .code {
+      font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC';
+    }
+
+    .pdf:lang(zh-TW) .code {
+      font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC';
+    }
+
+    .pdf:lang(ko-KR) .code {
+      font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR';
+    }
+
+    .pdf .serif {
+      font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP';
+    }
+
+    .pdf:lang(zh-CN) .serif {
+      font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC';
+    }
+
+    .pdf:lang(zh-TW) .serif {
+      font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC';
+    }
+
+    .pdf:lang(ko-KR) .serif {
+      font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR';
+    }
+
+    .pdf .mono {
+      font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP';
+    }
+
+    .pdf:lang(zh-CN) .mono {
+      font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC';
+    }
+
+    .pdf:lang(zh-TW) .mono {
+      font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC';
+    }
+
+    .pdf:lang(ko-KR) .mono {
+      font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR';
+    }
+
+    .highlight-default {
+      color: rgba(55, 53, 47, 1);
+    }
+
+    .highlight-gray {
+      color: rgba(120, 119, 116, 1);
+      fill: rgba(120, 119, 116, 1);
+    }
+
+    .highlight-brown {
+      color: rgba(159, 107, 83, 1);
+      fill: rgba(159, 107, 83, 1);
+    }
+
+    .highlight-orange {
+      color: rgba(217, 115, 13, 1);
+      fill: rgba(217, 115, 13, 1);
+    }
+
+    .highlight-yellow {
+      color: rgba(203, 145, 47, 1);
+      fill: rgba(203, 145, 47, 1);
+    }
+
+    .highlight-teal {
+      color: rgba(68, 131, 97, 1);
+      fill: rgba(68, 131, 97, 1);
+    }
+
+    .highlight-blue {
+      color: rgba(51, 126, 169, 1);
+      fill: rgba(51, 126, 169, 1);
+    }
+
+    .highlight-purple {
+      color: rgba(144, 101, 176, 1);
+      fill: rgba(144, 101, 176, 1);
+    }
+
+    .highlight-pink {
+      color: rgba(193, 76, 138, 1);
+      fill: rgba(193, 76, 138, 1);
+    }
+
+    .highlight-red {
+      color: rgba(212, 76, 71, 1);
+      fill: rgba(212, 76, 71, 1);
+    }
+
+    .highlight-default_background {
+      color: rgba(55, 53, 47, 1);
+    }
+
+    .highlight-gray_background {
+      background: rgba(241, 241, 239, 1);
+    }
+
+    .highlight-brown_background {
+      background: rgba(244, 238, 238, 1);
+    }
+
+    .highlight-orange_background {
+      background: rgba(251, 236, 221, 1);
+    }
+
+    .highlight-yellow_background {
+      background: rgba(251, 243, 219, 1);
+    }
+
+    .highlight-teal_background {
+      background: rgba(237, 243, 236, 1);
+    }
+
+    .highlight-blue_background {
+      background: rgba(231, 243, 248, 1);
+    }
+
+    .highlight-purple_background {
+      background: rgba(244, 240, 247, 0.8);
+    }
+
+    .highlight-pink_background {
+      background: rgba(249, 238, 243, 0.8);
+    }
+
+    .highlight-red_background {
+      background: rgba(253, 235, 236, 1);
+    }
+
+    .block-color-default {
+      color: inherit;
+      fill: inherit;
+    }
+
+    .block-color-gray {
+      color: rgba(120, 119, 116, 1);
+      fill: rgba(120, 119, 116, 1);
+    }
+
+    .block-color-brown {
+      color: rgba(159, 107, 83, 1);
+      fill: rgba(159, 107, 83, 1);
+    }
+
+    .block-color-orange {
+      color: rgba(217, 115, 13, 1);
+      fill: rgba(217, 115, 13, 1);
+    }
+
+    .block-color-yellow {
+      color: rgba(203, 145, 47, 1);
+      fill: rgba(203, 145, 47, 1);
+    }
+
+    .block-color-teal {
+      color: rgba(68, 131, 97, 1);
+      fill: rgba(68, 131, 97, 1);
+    }
+
+    .block-color-blue {
+      color: rgba(51, 126, 169, 1);
+      fill: rgba(51, 126, 169, 1);
+    }
+
+    .block-color-purple {
+      color: rgba(144, 101, 176, 1);
+      fill: rgba(144, 101, 176, 1);
+    }
+
+    .block-color-pink {
+      color: rgba(193, 76, 138, 1);
+      fill: rgba(193, 76, 138, 1);
+    }
+
+    .block-color-red {
+      color: rgba(212, 76, 71, 1);
+      fill: rgba(212, 76, 71, 1);
+    }
+
+    .block-color-default_background {
+      color: inherit;
+      fill: inherit;
+    }
+
+    .block-color-gray_background {
+      background: rgba(241, 241, 239, 1);
+    }
+
+    .block-color-brown_background {
+      background: rgba(244, 238, 238, 1);
+    }
+
+    .block-color-orange_background {
+      background: rgba(251, 236, 221, 1);
+    }
+
+    .block-color-yellow_background {
+      background: rgba(251, 243, 219, 1);
+    }
+
+    .block-color-teal_background {
+      background: rgba(237, 243, 236, 1);
+    }
+
+    .block-color-blue_background {
+      background: rgba(231, 243, 248, 1);
+    }
+
+    .block-color-purple_background {
+      background: rgba(244, 240, 247, 0.8);
+    }
+
+    .block-color-pink_background {
+      background: rgba(249, 238, 243, 0.8);
+    }
+
+    .block-color-red_background {
+      background: rgba(253, 235, 236, 1);
+    }
+
+    .select-value-color-uiBlue {
+      background-color: rgba(35, 131, 226, .07);
+    }
+
+    .select-value-color-pink {
+      background-color: rgba(245, 224, 233, 1);
+    }
+
+    .select-value-color-purple {
+      background-color: rgba(232, 222, 238, 1);
+    }
+
+    .select-value-color-green {
+      background-color: rgba(219, 237, 219, 1);
+    }
+
+    .select-value-color-gray {
+      background-color: rgba(227, 226, 224, 1);
+    }
+
+    .select-value-color-transparentGray {
+      background-color: rgba(227, 226, 224, 0);
+    }
+
+    .select-value-color-translucentGray {
+      background-color: rgba(0, 0, 0, 0.06);
+    }
+
+    .select-value-color-orange {
+      background-color: rgba(250, 222, 201, 1);
+    }
+
+    .select-value-color-brown {
+      background-color: rgba(238, 224, 218, 1);
+    }
+
+    .select-value-color-red {
+      background-color: rgba(255, 226, 221, 1);
+    }
+
+    .select-value-color-yellow {
+      background-color: rgba(253, 236, 200, 1);
+    }
+
+    .select-value-color-blue {
+      background-color: rgba(211, 229, 239, 1);
+    }
+
+    .select-value-color-pageGlass {
+      background-color: undefined;
+    }
+
+    .select-value-color-washGlass {
+      background-color: undefined;
+    }
+
+    .checkbox {
+      display: inline-flex;
+      vertical-align: text-bottom;
+      width: 16;
+      height: 16;
+      background-size: 16px;
+      margin-left: 2px;
+      margin-right: 5px;
+    }
+
+    .checkbox-on {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+    }
+
+    .checkbox-off {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+    }
+  </style>
+</head>
+
+<body>
+  <article id="190aed2d-4470-8078-bb58-fe19bdfe0d87" class="page sans">
+    <header><img class="page-cover-image" src="%E5%A3%81%E7%BA%B878.png" style="object-position:center 40.62%" />
+      <div class="page-header-icon page-header-icon-with-cover"><span class="icon">📑</span></div>
+      <h1 class="page-title">代码审查和git commit引导、校验工作流</h1>
+      <p class="page-description"></p>
+    </header>
+    <div class="page-body">
+      <h3 id="191aed2d-4470-80ca-92c9-cf57c5a9f3e9" class="">引言</h3>
+      <figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex"
+        id="191aed2d-4470-809c-9646-da47cf3c4bd2">
+        <div style="font-size:1.5em"><span class="icon">😀</span></div>
+        <div style="width:100%">注意：本文没有过多延伸，只涉及部分注意事项，需要一定的前端基础；<p id="191aed2d-4470-80f6-aae0-ca84cec5de92" class="">
+            文章内容仅代表个人见解，如有错漏之处欢迎指出。</p>
+          <blockquote id="191aed2d-4470-802b-b57d-e98fb6b7aba0" class="">此工作流主要使用如下库：<br />prettier：代码格式化<br />
+            <p id="191aed2d-4470-8063-8223-ed6cf0b122d1" class="">
+              eslint：代码检查<br />lint-staged：检查暂存区代码<br />commitlint：git commit 信息格式校验<br /></p>
+            <p id="191aed2d-4470-80b8-92b1-d8d37bf1d0c0" class="">commitizen ：cz-git 必需库<br />cz-git：引导式 git 提交工具<br />
+            </p>
+            <p id="191aed2d-4470-801f-bd95-f3eb54095948" class="">husky：Git hooks 钩子工具,用于在 Git 操作前后执行自定义脚本</p>
+          </blockquote>
+        </div>
+      </figure>
+      <p id="191aed2d-4470-80fa-991f-f7bd346ea2b6" class="">
+      </p>
+      <h1 id="191aed2d-4470-80b5-b7a4-c6f76eb81957" class="">一、说明</h1>
+      <h2 id="191aed2d-4470-80bf-809c-eab9911f4be8" class="">（一）项目环境及结构</h2>
+      <h3 id="191aed2d-4470-8094-89a9-fb2f0193bc1f" class="">1、项目环境</h3>
+      <p id="191aed2d-4470-8018-821c-e7113e38ff85" class="">
+      </p>
+      <p id="191aed2d-4470-808b-ba5f-ee0a48a263d3" class="">本示例环境如下表：</p>
+      <table id="191aed2d-4470-8081-a449-ea2ff29bab92" class="simple-table">
+        <thead class="simple-table-header">
+          <tr id="191aed2d-4470-80ff-9863-c4e84afefef6">
+            <th id="lx|_" class="simple-table-header-color simple-table-header">环境/工具</th>
+            <th id="@Dde" class="simple-table-header-color simple-table-header">版本</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="191aed2d-4470-8073-a2c9-ee52c644f42c">
+            <th id="lx|_" class="simple-table-header-color simple-table-header">操作系统</th>
+            <td id="@Dde" class="">Windows 10</td>
+          </tr>
+          <tr id="191aed2d-4470-80b0-b45f-fb93a4e24fda">
+            <th id="lx|_" class="simple-table-header-color simple-table-header">编译器</th>
+            <td id="@Dde" class="">VScode 1.96.4</td>
+          </tr>
+          <tr id="191aed2d-4470-80b5-981f-e3d631a6318b">
+            <th id="lx|_" class="simple-table-header-color simple-table-header">Node</th>
+            <td id="@Dde" class="">20.16.0</td>
+          </tr>
+          <tr id="191aed2d-4470-800a-97c4-c1c7ec7f6806">
+            <th id="lx|_" class="simple-table-header-color simple-table-header">项目环境</th>
+            <td id="@Dde" class="">Vue3 + TypeScript</td>
+          </tr>
+        </tbody>
+      </table>
+      <p id="191aed2d-4470-8006-8797-d4232f031e04" class="">
+      </p>
+      <h3 id="191aed2d-4470-80ce-9807-f015af1cc4cd" class="">2、项目结构</h3>
+      <p id="191aed2d-4470-8064-9ce1-c19b6d98e226" class="">项目结构如下：</p>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+        integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+        crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+        integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+        crossorigin="anonymous" referrerPolicy="no-referrer" />
+      <pre id="191aed2d-4470-8060-b836-c4fffff7bd87" class="code"><code class="language-CSS">│── .husky  //需要新建的husky文件夹
 │   ├── _	  //此文件夹是husky的自带脚本，内部文件命名代表git的Hooks的生命周期
 │   ├── commit-msg  //提交信息完成之后执行
 │   └── pre-commit  //提交信息(引导)完成之后，提交代码到本地仓库之前执行执行的脚本
@@ -692,7 +908,16 @@ blockquote {
 │── .prettierrc.cjs //prettier配置
 │── commitlint.config.cjs   //commitlint和cz-git配置
 │── eslint.config.js    //eslint配置
-└── package.json    //包管理文件‌</code></pre><h3 id="191aed2d-4470-803a-a149-c254f54ca9be" class="">3、package.json</h3><p id="191aed2d-4470-80cb-845d-d92d1f7cfc49" class=""><code>package.json</code>配置和依赖版本如下：</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8031-bbc0-e7847652af0c" class="code"><code class="language-JSON">{
+└── package.json    //包管理文件‌</code></pre>
+      <h3 id="191aed2d-4470-803a-a149-c254f54ca9be" class="">3、package.json</h3>
+      <p id="191aed2d-4470-80cb-845d-d92d1f7cfc49" class=""><code>package.json</code>配置和依赖版本如下：</p>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+        integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+        crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+        integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+        crossorigin="anonymous" referrerPolicy="no-referrer" />
+      <pre id="191aed2d-4470-8031-bbc0-e7847652af0c" class="code"><code class="language-JSON">{
   &quot;type&quot;: &quot;module&quot;,
   &quot;scripts&quot;: {
     &quot;lint-staged&quot;: &quot;lint-staged&quot;,
@@ -732,11 +957,70 @@ blockquote {
     &quot;typescript-eslint&quot;: &quot;^8.22.0&quot;,
     &quot;vue-eslint-parser&quot;: &quot;^9.4.3&quot;,
   }
-}</code></pre><p id="191aed2d-4470-8086-9bf2-d5ebc16067c4" class="">
-</p><h2 id="191aed2d-4470-80a7-a75e-fb80d6beb4df" class="">（二）工作流程</h2><p id="191aed2d-4470-80b4-8db0-ed89920812de" class="">1、执行 commit 提交操作 <mark class="highlight-gray">[husky进行如下自动步骤]</mark></p><p id="191aed2d-4470-8045-bbe4-ff727b3619b2" class=""><mark class="highlight-default">2、</mark><mark class="highlight-orange">【可选】</mark>将被修改的代码添加到暂存区</p><p id="191aed2d-4470-807f-8aac-e28a3d7a4a2b" class="">3、<mark class="highlight-teal">【自动】</mark>对暂存区进行代码格式化和检查 <mark class="highlight-gray">(检查无误进入下一步) [prettier+eslint+lint-staged]</mark></p><p id="191aed2d-4470-80c6-abad-df9f9d64e8d9" class=""><mark class="highlight-default">4、</mark><mark class="highlight-orange">【可选】</mark>进行引导式提交，对 commit 信息格式化 <mark class="highlight-gray">[commitizen+cz-git]</mark></p><p id="191aed2d-4470-803b-b654-f86476bfd9d3" class=""><mark class="highlight-default">5、</mark><mark class="highlight-teal">【自动】</mark>对 commit 信息的格式进行检查 <mark class="highlight-gray">(检查无误进入下一步) [commitlint]</mark></p><p id="191aed2d-4470-8035-b955-c8b7d1f73c5f" class="">6、代码提交到本地仓库</p><p id="191aed2d-4470-808f-ade5-e0d6f9a0d815" class="">
-</p><h1 id="191aed2d-4470-80f1-a03b-f24b32537692" class="">二、代码审查：</h1><h2 id="191aed2d-4470-8065-a94b-c4276dc3c462" class="">（一）Prettier</h2><p id="191aed2d-4470-80f5-b233-f30b2497d4e7" class="">
-</p><blockquote id="191aed2d-4470-809d-a51f-f601ab58b271" class="">Prettier中文网：<figure id="191aed2d-4470-8075-9d0b-deeb652c822b"><a href="https://prettier.nodejs.cn/docs/en/index.html" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">什么是 Prettier？ · Prettier 中文网</div><div class="bookmark-description">Prettier 是一个有态度的代码格式化程序，支持：</div></div><div class="bookmark-href"><img src="https://prettier.nodejs.cn/icon.png" class="icon bookmark-icon"/>https://prettier.nodejs.cn/docs/en/index.html</div></div><img src="https://prettier.nodejs.cn/icon.png" class="bookmark-image"/></a></figure></blockquote><p id="191aed2d-4470-80b2-8aed-ccc74c352ba2" class="">
-</p><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary><div class="indented"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80af-b074-e5b099e73bc1" class="code"><code class="language-Shell">pnpm add prettier -D</code></pre></div></details><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary><div class="indented"><ol type="1" id="191aed2d-4470-8050-a3fc-e06bf75b6f4f" class="numbered-list" start="1"><li> 配置<code>.prettierrc.cjs</code>文件<p id="191aed2d-4470-8012-9d05-ef517eab2e1e" class="">项目根目录下创建<code>.prettierrc.cjs</code> 文件，自定义prettier格式配置，prettier检查代码时会遵循以下规则。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8089-93b2-e3154ff59138" class="code"><code class="language-JavaScript">// .prettierrc.cjs
+}</code></pre>
+      <p id="191aed2d-4470-8086-9bf2-d5ebc16067c4" class="">
+      </p>
+      <h2 id="191aed2d-4470-80a7-a75e-fb80d6beb4df" class="">（二）工作流程</h2>
+      <p id="191aed2d-4470-80b4-8db0-ed89920812de" class="">1、执行 commit 提交操作 <mark
+          class="highlight-gray">[husky进行如下自动步骤]</mark></p>
+      <p id="191aed2d-4470-8045-bbe4-ff727b3619b2" class=""><mark class="highlight-default">2、</mark><mark
+          class="highlight-orange">【可选】</mark>将被修改的代码添加到暂存区</p>
+      <p id="191aed2d-4470-807f-8aac-e28a3d7a4a2b" class="">3、<mark class="highlight-teal">【自动】</mark>对暂存区进行代码格式化和检查
+        <mark class="highlight-gray">(检查无误进入下一步) [prettier+eslint+lint-staged]</mark></p>
+      <p id="191aed2d-4470-80c6-abad-df9f9d64e8d9" class=""><mark class="highlight-default">4、</mark><mark
+          class="highlight-orange">【可选】</mark>进行引导式提交，对 commit 信息格式化 <mark
+          class="highlight-gray">[commitizen+cz-git]</mark></p>
+      <p id="191aed2d-4470-803b-b654-f86476bfd9d3" class=""><mark class="highlight-default">5、</mark><mark
+          class="highlight-teal">【自动】</mark>对 commit 信息的格式进行检查 <mark class="highlight-gray">(检查无误进入下一步)
+          [commitlint]</mark></p>
+      <p id="191aed2d-4470-8035-b955-c8b7d1f73c5f" class="">6、代码提交到本地仓库</p>
+      <p id="191aed2d-4470-808f-ade5-e0d6f9a0d815" class="">
+      </p>
+      <h1 id="191aed2d-4470-80f1-a03b-f24b32537692" class="">二、代码审查：</h1>
+      <h2 id="191aed2d-4470-8065-a94b-c4276dc3c462" class="">（一）Prettier</h2>
+      <p id="191aed2d-4470-80f5-b233-f30b2497d4e7" class="">
+      </p>
+      <blockquote id="191aed2d-4470-809d-a51f-f601ab58b271" class="">Prettier中文网：<figure
+          id="191aed2d-4470-8075-9d0b-deeb652c822b"><a href="https://prettier.nodejs.cn/docs/en/index.html"
+            class="bookmark source">
+            <div class="bookmark-info">
+              <div class="bookmark-text">
+                <div class="bookmark-title">什么是 Prettier？ · Prettier 中文网</div>
+                <div class="bookmark-description">Prettier 是一个有态度的代码格式化程序，支持：</div>
+              </div>
+              <div class="bookmark-href"><img src="https://prettier.nodejs.cn/icon.png"
+                  class="icon bookmark-icon" />https://prettier.nodejs.cn/docs/en/index.html</div>
+            </div><img src="https://prettier.nodejs.cn/icon.png" class="bookmark-image" />
+          </a></figure>
+      </blockquote>
+      <p id="191aed2d-4470-80b2-8aed-ccc74c352ba2" class="">
+      </p>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary>
+        <div class="indented">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+            integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+            crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+            crossorigin="anonymous" referrerPolicy="no-referrer" />
+          <pre id="191aed2d-4470-80af-b074-e5b099e73bc1"
+            class="code"><code class="language-Shell">pnpm add prettier -D</code></pre>
+        </div>
+      </details>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary>
+        <div class="indented">
+          <ol type="1" id="191aed2d-4470-8050-a3fc-e06bf75b6f4f" class="numbered-list" start="1">
+            <li> 配置<code>.prettierrc.cjs</code>文件<p id="191aed2d-4470-8012-9d05-ef517eab2e1e" class="">
+                项目根目录下创建<code>.prettierrc.cjs</code> 文件，自定义prettier格式配置，prettier检查代码时会遵循以下规则。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8089-93b2-e3154ff59138" class="code"><code class="language-JavaScript">// .prettierrc.cjs
 // @see: https://www.prettier.cn
 module.exports = {
   // 指定最大换行长度(HTML 和 Vue 模板中的元素)
@@ -777,8 +1061,21 @@ module.exports = {
   rangeStart: 0,
   rangeEnd: Infinity,
 }
-</code></pre><p id="191aed2d-4470-80ff-8ced-ee92b2a21eec" class="">
-</p></li></ol><ol type="1" id="191aed2d-4470-80c9-9444-f7fc07918c75" class="numbered-list" start="2"><li> 配置<code>.prettierignore </code>文件<p id="191aed2d-4470-80ee-9499-d5067ee1580e" class="">项目根目录下创建<code>.prettierignore </code>文件，自定义 prettier 忽略文件配置，prettier 检查代码时会忽略其内的文件。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8080-8625-df6aa4654766" class="code"><code class="language-Plain Text" style="white-space:pre-wrap;word-break:break-all">/dist/*
+</code></pre>
+              <p id="191aed2d-4470-80ff-8ced-ee92b2a21eec" class="">
+              </p>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-80c9-9444-f7fc07918c75" class="numbered-list" start="2">
+            <li> 配置<code>.prettierignore </code>文件<p id="191aed2d-4470-80ee-9499-d5067ee1580e" class="">
+                项目根目录下创建<code>.prettierignore </code>文件，自定义 prettier 忽略文件配置，prettier 检查代码时会忽略其内的文件。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8080-8625-df6aa4654766" class="code"><code class="language-Plain Text" style="white-space:pre-wrap;word-break:break-all">/dist/*
 .local
 /node_modules/**
 
@@ -788,17 +1085,124 @@ module.exports = {
 
 /public/*
 auto-imports.d.ts
-components.d.ts</code></pre><p id="191aed2d-4470-80a5-863d-d7533a0859de" class="">
-</p></li></ol><ol type="1" id="191aed2d-4470-8070-8a0e-e9d05617e160" class="numbered-list" start="3"><li> 在<code>package.json</code>中添加脚本<blockquote id="191aed2d-4470-80c5-a91a-fa808c9dadc8" class=""><code>check:prettier</code> 脚本仅检查项目中所有非忽略列表的文件代码格式；<p id="191aed2d-4470-80b1-b4e4-cdbbd1f0a510" class=""><code>lint:prettier</code> 脚本会按照规则直接修改项目中所有非忽略列表的文件代码，使其符合规则。</p></blockquote><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80b9-8fb5-c462163a1b8e" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">&quot;scripts&quot;: {
+components.d.ts</code></pre>
+              <p id="191aed2d-4470-80a5-863d-d7533a0859de" class="">
+              </p>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-8070-8a0e-e9d05617e160" class="numbered-list" start="3">
+            <li> 在<code>package.json</code>中添加脚本<blockquote id="191aed2d-4470-80c5-a91a-fa808c9dadc8" class="">
+                <code>check:prettier</code> 脚本仅检查项目中所有非忽略列表的文件代码格式；<p id="191aed2d-4470-80b1-b4e4-cdbbd1f0a510"
+                  class=""><code>lint:prettier</code> 脚本会按照规则直接修改项目中所有非忽略列表的文件代码，使其符合规则。</p>
+              </blockquote>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80b9-8fb5-c462163a1b8e" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">&quot;scripts&quot;: {
 	&quot;check:prettier&quot;: &quot;prettier --check .&quot;,
 	&quot;lint:prettier&quot;: &quot;prettier . --write&quot;,
-}</code></pre><p id="191aed2d-4470-809f-a81b-ed8dd85ecadf" class="">脚本配置完整之后可以依次尝试是否有效。</p></li></ol><p id="191aed2d-4470-8090-ac57-d6d54f7589a2" class="">
-</p><p id="191aed2d-4470-8066-8f4f-fa60428782cd" class="">
-</p></div></details><h2 id="191aed2d-4470-8033-a6b7-eace0db57447" class="">（二）ESLint</h2><p id="191aed2d-4470-80b3-bcac-f5b6c0abdf02" class="">
-</p><blockquote id="191aed2d-4470-80cd-ac48-fdb9488b88ba" class="">ESLint 中文网：<figure id="191aed2d-4470-805d-8390-db2065c609b7"><a href="https://eslint.nodejs.cn/docs/latest/use/getting-started" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">ESLint 新手入门 - ESLint 中文网</div><div class="bookmark-description">插件化、可配置的 linter 工具，用于识别和报告 JavaScript 中的模式。 轻松维护你的代码质量。</div></div><div class="bookmark-href"><img src="https://eslint.nodejs.cn/favicon.ico" class="icon bookmark-icon"/>https://eslint.nodejs.cn/docs/latest/use/getting-started</div></div></a></figure></blockquote><p id="191aed2d-4470-80a9-9c67-eb8f8f84e235" class="">
-</p><figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex" id="191aed2d-4470-80cc-addf-e616d55fa5ac"><div style="font-size:1.5em"><span class="icon">💡</span></div><div style="width:100%"><p id="191aed2d-4470-80c3-a3f6-c786542c772a" class="">注意，本示例使用 ESLint 9，如需使用必须安装并构建 <a href="https://nodejs.cn/">Node.js</a>（<code>^18.18.0</code>、<code>^20.9.0</code> 或 <code>&gt;=21.1.0</code>）并支持 SSL。（如果你使用的是官方 Node.js 发行版，则始终内置 SSL。）</p><p id="191aed2d-4470-8041-9b0c-e89eaf29179e" class="">如果你使用的是更低版本的 ESLint，请查看官网、其他教程或询问AI如何修改，因为旧版配置格式与下方示例有很大不同。因此，在使用 ESLint 9结合其他插件的配置时，请检查其他插件是否支持<strong>扁平化配置。</strong></p></div></figure><p id="191aed2d-4470-803c-bc58-d4fbe9ac982e" class="">
-</p><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary><div class="indented"><ol type="1" id="191aed2d-4470-80ef-ba53-c691d9e5947c" class="numbered-list" start="1"><li>安装 ESLint <p id="191aed2d-4470-8093-a838-ec9c8274c093" class="">输入下面的命令进行引导式安装(如下图)，可以根据项目自定义配置。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8040-9552-db63ead8b720" class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm create @eslint/config@latest</code></pre><figure id="191aed2d-4470-805e-ab81-e2e25e343066" class="image"><a href="image.png"><img style="width:709.9896240234375px" src="image.png"/></a></figure></li></ol><ol type="1" id="191aed2d-4470-807a-ba48-db6c0402545b" class="numbered-list" start="2"><li>安装其他插件<p id="191aed2d-4470-8085-bf16-c4c347af7939" class=""><code>eslint-plugin-prettier</code>用于导入 prettier 的格式化规则，转换为 ESLint 的规则，以便在 ESLint 中使用 prettier 的格式化规则，简单来说就是兼容二者使其不冲突。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80b5-8cbd-ea9e7badd76c" class="code"><code class="language-Shell">pnpm add -D @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-config-prettier eslint-plugin-prettier vue-eslint-parser</code></pre></li></ol><p id="191aed2d-4470-8066-91f8-eaee0db62a36" class="">
-</p></div></details><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary><div class="indented"><ol type="1" id="191aed2d-4470-807c-be71-cf8a6ce6bd0c" class="numbered-list" start="1"><li> 配置<code>eslint.config.js</code>文件<blockquote id="191aed2d-4470-80e2-a375-f07c25a1ce3a" class=""><mark class="highlight-default">注意：</mark><mark class="highlight-orange"><strong>后写的同名规则会覆盖前面的规则</strong></mark><mark class="highlight-orange">，故带</mark><code>&quot;prettier/prettier&quot;: [&quot;error&quot;, prettierConfig]</code><mark class="highlight-orange">的规则写在末尾，让 ESLint 使用 Prettier 规则进行代码格式检查，且使 Prettier 规则不被其它规则覆盖。</mark></blockquote><p id="191aed2d-4470-806d-a437-cf43c18f065a" class="">项目根目录下创建<code>eslint.config.js</code>文件，导入了js推荐配置、vue推荐配置、prettier格式配置、以及其他的 ESLint 规则（包含自定义的prettier格式配置），ESLint 检查代码时会遵循以下规则。</p><p id="191aed2d-4470-8012-93d2-e404fe46c7d4" class="">本示例采用的是<code>prettier</code>+<code>ESLint </code>二者的规则进行代码格式化，ESLint 再进行代码审查。如果你用的不是<code>prettier</code>进行代码格式化，或不使用其他格式化工具，ESLint 也可支持代码格式化。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80a5-be72-c679a773d2ae" class="code"><code class="language-JavaScript">// eslint.config.js
+}</code></pre>
+              <p id="191aed2d-4470-809f-a81b-ed8dd85ecadf" class="">脚本配置完整之后可以依次尝试是否有效。</p>
+            </li>
+          </ol>
+          <p id="191aed2d-4470-8090-ac57-d6d54f7589a2" class="">
+          </p>
+          <p id="191aed2d-4470-8066-8f4f-fa60428782cd" class="">
+          </p>
+        </div>
+      </details>
+      <h2 id="191aed2d-4470-8033-a6b7-eace0db57447" class="">（二）ESLint</h2>
+      <p id="191aed2d-4470-80b3-bcac-f5b6c0abdf02" class="">
+      </p>
+      <blockquote id="191aed2d-4470-80cd-ac48-fdb9488b88ba" class="">ESLint 中文网：<figure
+          id="191aed2d-4470-805d-8390-db2065c609b7"><a href="https://eslint.nodejs.cn/docs/latest/use/getting-started"
+            class="bookmark source">
+            <div class="bookmark-info">
+              <div class="bookmark-text">
+                <div class="bookmark-title">ESLint 新手入门 - ESLint 中文网</div>
+                <div class="bookmark-description">插件化、可配置的 linter 工具，用于识别和报告 JavaScript 中的模式。 轻松维护你的代码质量。</div>
+              </div>
+              <div class="bookmark-href"><img src="https://eslint.nodejs.cn/favicon.ico"
+                  class="icon bookmark-icon" />https://eslint.nodejs.cn/docs/latest/use/getting-started</div>
+            </div>
+          </a></figure>
+      </blockquote>
+      <p id="191aed2d-4470-80a9-9c67-eb8f8f84e235" class="">
+      </p>
+      <figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex"
+        id="191aed2d-4470-80cc-addf-e616d55fa5ac">
+        <div style="font-size:1.5em"><span class="icon">💡</span></div>
+        <div style="width:100%">
+          <p id="191aed2d-4470-80c3-a3f6-c786542c772a" class="">注意，本示例使用 ESLint 9，如需使用必须安装并构建 <a
+              href="https://nodejs.cn/">Node.js</a>（<code>^18.18.0</code>、<code>^20.9.0</code> 或 <code>&gt;=21.1.0</code>）并支持
+            SSL。（如果你使用的是官方 Node.js 发行版，则始终内置 SSL。）</p>
+          <p id="191aed2d-4470-8041-9b0c-e89eaf29179e" class="">如果你使用的是更低版本的
+            ESLint，请查看官网、其他教程或询问AI如何修改，因为旧版配置格式与下方示例有很大不同。因此，在使用 ESLint 9结合其他插件的配置时，请检查其他插件是否支持<strong>扁平化配置。</strong>
+          </p>
+        </div>
+      </figure>
+      <p id="191aed2d-4470-803c-bc58-d4fbe9ac982e" class="">
+      </p>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary>
+        <div class="indented">
+          <ol type="1" id="191aed2d-4470-80ef-ba53-c691d9e5947c" class="numbered-list" start="1">
+            <li>安装 ESLint <p id="191aed2d-4470-8093-a838-ec9c8274c093" class="">输入下面的命令进行引导式安装(如下图)，可以根据项目自定义配置。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8040-9552-db63ead8b720"
+                class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm create @eslint/config@latest</code></pre>
+              <figure id="191aed2d-4470-805e-ab81-e2e25e343066" class="image"><a href="image.png"><img
+                    style="width:709.9896240234375px" src="image.png" /></a></figure>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-807a-ba48-db6c0402545b" class="numbered-list" start="2">
+            <li>安装其他插件<p id="191aed2d-4470-8085-bf16-c4c347af7939" class=""><code>eslint-plugin-prettier</code>用于导入
+                prettier 的格式化规则，转换为 ESLint 的规则，以便在 ESLint 中使用 prettier 的格式化规则，简单来说就是兼容二者使其不冲突。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80b5-8cbd-ea9e7badd76c"
+                class="code"><code class="language-Shell">pnpm add -D @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-config-prettier eslint-plugin-prettier vue-eslint-parser</code></pre>
+            </li>
+          </ol>
+          <p id="191aed2d-4470-8066-91f8-eaee0db62a36" class="">
+          </p>
+        </div>
+      </details>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary>
+        <div class="indented">
+          <ol type="1" id="191aed2d-4470-807c-be71-cf8a6ce6bd0c" class="numbered-list" start="1">
+            <li> 配置<code>eslint.config.js</code>文件<blockquote id="191aed2d-4470-80e2-a375-f07c25a1ce3a" class=""><mark
+                  class="highlight-default">注意：</mark><mark
+                  class="highlight-orange"><strong>后写的同名规则会覆盖前面的规则</strong></mark><mark
+                  class="highlight-orange">，故带</mark><code>&quot;prettier/prettier&quot;: [&quot;error&quot;, prettierConfig]</code><mark
+                  class="highlight-orange">的规则写在末尾，让 ESLint 使用 Prettier 规则进行代码格式检查，且使 Prettier 规则不被其它规则覆盖。</mark>
+              </blockquote>
+              <p id="191aed2d-4470-806d-a437-cf43c18f065a" class="">
+                项目根目录下创建<code>eslint.config.js</code>文件，导入了js推荐配置、vue推荐配置、prettier格式配置、以及其他的 ESLint
+                规则（包含自定义的prettier格式配置），ESLint 检查代码时会遵循以下规则。</p>
+              <p id="191aed2d-4470-8012-93d2-e404fe46c7d4" class="">
+                本示例采用的是<code>prettier</code>+<code>ESLint </code>二者的规则进行代码格式化，ESLint
+                再进行代码审查。如果你用的不是<code>prettier</code>进行代码格式化，或不使用其他格式化工具，ESLint 也可支持代码格式化。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80a5-be72-c679a773d2ae" class="code"><code class="language-JavaScript">// eslint.config.js
 // @see: https://eslint.nodejs.cn/docs
 import globals from &quot;globals&quot;
 import eslint from &quot;@eslint/js&quot;
@@ -981,16 +1385,83 @@ export default [
     },
   },
 ]
-</code></pre></li></ol><ol type="1" id="191aed2d-4470-805b-b691-ce4d0ade947c" class="numbered-list" start="2"><li>在<code>package.json</code>中添加脚本<blockquote id="191aed2d-4470-808e-bffc-ef7b9ab4cb6f" class=""><code>&quot;check&quot;: &quot;eslint .&quot;</code> 脚本仅检查项目中所有非忽略列表的文件代码格式；<p id="191aed2d-4470-8040-895b-f9952b8f4122" class=""><code>&quot;lint&quot;: &quot;eslint . --fix&quot;</code> 脚本会按照规则直接修改项目中所有非忽略列表的文件代码，并再次报告无法修改的格式错误。</p></blockquote><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80a4-ad57-e1ae60f5487a" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">&quot;scripts&quot;: {
+</code></pre>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-805b-b691-ce4d0ade947c" class="numbered-list" start="2">
+            <li>在<code>package.json</code>中添加脚本<blockquote id="191aed2d-4470-808e-bffc-ef7b9ab4cb6f" class="">
+                <code>&quot;check&quot;: &quot;eslint .&quot;</code> 脚本仅检查项目中所有非忽略列表的文件代码格式；<p
+                  id="191aed2d-4470-8040-895b-f9952b8f4122" class="">
+                  <code>&quot;lint&quot;: &quot;eslint . --fix&quot;</code> 脚本会按照规则直接修改项目中所有非忽略列表的文件代码，并再次报告无法修改的格式错误。
+                </p>
+              </blockquote>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80a4-ad57-e1ae60f5487a" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">&quot;scripts&quot;: {
 	&quot;check&quot;: &quot;eslint .&quot;,
 	&quot;lint&quot;: &quot;eslint . --fix&quot;,
-}</code></pre><p id="191aed2d-4470-8025-84ea-ded0351db534" class="">脚本配置完整之后可以依次尝试是否有效，日常使用<code>lint</code>脚本进行检查并修复；</p><p id="191aed2d-4470-8003-93b4-dd7714e13ed4" class="">运行任意脚本后控制台报红，则表示有代码不符合格式规则或不正确，如果提醒“- - fix”且下方显示可修复，则可再次运行<code>lint</code>脚本进行检查并修复，否则需要手动前往该文件进行修改；</p><p id="191aed2d-4470-8014-be5d-e7fffbd1de7d" class="">如果项目代码格式全部匹配你创建的规则，ESLint 不会输出任何成功提示信息，这点和prettier不同。</p></li></ol><p id="191aed2d-4470-80d9-8406-c67b0d87a77a" class="">
-</p><p id="191aed2d-4470-802b-9ac7-ecfbffd3bd07" class="">
-</p><p id="191aed2d-4470-80ac-a464-c63f0228bbd8" class="">
-</p><p id="191aed2d-4470-8037-8903-e33ddce5e951" class="">
-</p></div></details><h2 id="191aed2d-4470-8001-835c-ccd87b0e8ce2" class="">（三）lint-staged</h2><p id="191aed2d-4470-8047-a2ea-fd49508edbf7" class="">
-</p><blockquote id="191aed2d-4470-80e3-9da8-dd2509f0ae10" class="">针对<strong>暂存区</strong>需要提交的文件运行格式化程序和代码审查等任务。<p id="191aed2d-4470-80f9-86b6-d45dd288aa95" class="">仅对“暂存区”的代码进行操作，这样只会检查本次你修改的代码，而不必每次提交代码时检查并修改整个项目的代码——这会使你的团队成员无法辨别哪些是格式变动，哪些是你真正的逻辑变更。（同时防止替人背锅）</p><p id="191aed2d-4470-8064-80f6-dd046e805f10" class="">项目地址：</p><figure id="191aed2d-4470-8020-ac0d-e9c56c2da262"><div class="source">https://github.com/lint-staged/lint-staged</div></figure></blockquote><p id="191aed2d-4470-80c8-ab3f-deaee8038959" class="">
-</p><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary><div class="indented"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80fe-b57c-de9cb93d3d7d" class="code"><code class="language-Shell">pnpm add lint-staged -D</code></pre></div></details><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary><div class="indented"><p id="191aed2d-4470-80f2-9f2e-f5069bec8325" class="">在<code>package.json</code>中添加脚本</p><blockquote id="191aed2d-4470-803e-ada4-ef142a7addcc" class=""><code>lint-staged</code> 脚本仅针对项目暂存区中的，匹配以下规则的代码执行对应的检查脚本，一般用于结合 husky 以在提交代码前自动触发，如果检查不通过会中断提交操作。（后文会介绍）</blockquote><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-801c-97a0-fa8c6138e255" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">{
+}</code></pre>
+              <p id="191aed2d-4470-8025-84ea-ded0351db534" class="">脚本配置完整之后可以依次尝试是否有效，日常使用<code>lint</code>脚本进行检查并修复；
+              </p>
+              <p id="191aed2d-4470-8003-93b4-dd7714e13ed4" class="">运行任意脚本后控制台报红，则表示有代码不符合格式规则或不正确，如果提醒“- -
+                fix”且下方显示可修复，则可再次运行<code>lint</code>脚本进行检查并修复，否则需要手动前往该文件进行修改；</p>
+              <p id="191aed2d-4470-8014-be5d-e7fffbd1de7d" class="">如果项目代码格式全部匹配你创建的规则，ESLint
+                不会输出任何成功提示信息，这点和prettier不同。</p>
+            </li>
+          </ol>
+          <p id="191aed2d-4470-80d9-8406-c67b0d87a77a" class="">
+          </p>
+          <p id="191aed2d-4470-802b-9ac7-ecfbffd3bd07" class="">
+          </p>
+          <p id="191aed2d-4470-80ac-a464-c63f0228bbd8" class="">
+          </p>
+          <p id="191aed2d-4470-8037-8903-e33ddce5e951" class="">
+          </p>
+        </div>
+      </details>
+      <h2 id="191aed2d-4470-8001-835c-ccd87b0e8ce2" class="">（三）lint-staged</h2>
+      <p id="191aed2d-4470-8047-a2ea-fd49508edbf7" class="">
+      </p>
+      <blockquote id="191aed2d-4470-80e3-9da8-dd2509f0ae10" class="">针对<strong>暂存区</strong>需要提交的文件运行格式化程序和代码审查等任务。<p
+          id="191aed2d-4470-80f9-86b6-d45dd288aa95" class="">
+          仅对“暂存区”的代码进行操作，这样只会检查本次你修改的代码，而不必每次提交代码时检查并修改整个项目的代码——这会使你的团队成员无法辨别哪些是格式变动，哪些是你真正的逻辑变更。（同时防止替人背锅）</p>
+        <p id="191aed2d-4470-8064-80f6-dd046e805f10" class="">项目地址：</p>
+        <figure id="191aed2d-4470-8020-ac0d-e9c56c2da262">
+          <div class="source">https://github.com/lint-staged/lint-staged</div>
+        </figure>
+      </blockquote>
+      <p id="191aed2d-4470-80c8-ab3f-deaee8038959" class="">
+      </p>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary>
+        <div class="indented">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+            integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+            crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+            crossorigin="anonymous" referrerPolicy="no-referrer" />
+          <pre id="191aed2d-4470-80fe-b57c-de9cb93d3d7d"
+            class="code"><code class="language-Shell">pnpm add lint-staged -D</code></pre>
+        </div>
+      </details>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary>
+        <div class="indented">
+          <p id="191aed2d-4470-80f2-9f2e-f5069bec8325" class="">在<code>package.json</code>中添加脚本</p>
+          <blockquote id="191aed2d-4470-803e-ada4-ef142a7addcc" class=""><code>lint-staged</code>
+            脚本仅针对项目暂存区中的，匹配以下规则的代码执行对应的检查脚本，一般用于结合 husky 以在提交代码前自动触发，如果检查不通过会中断提交操作。（后文会介绍）</blockquote>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+            integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+            crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+            crossorigin="anonymous" referrerPolicy="no-referrer" />
+          <pre id="191aed2d-4470-801c-97a0-fa8c6138e255" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">{
 &quot;scripts&quot;: {
 	&quot;lint-staged&quot;: &quot;lint-staged&quot;,
 	},
@@ -999,9 +1470,22 @@ export default [
 			&quot;pnpm exec eslint --fix&quot;
 		]
 	}
-}</code></pre><p id="191aed2d-4470-8098-807d-c7e9b45ce162" class="">脚本配置完整之后可以尝试<code>&quot;lint-staged&quot;</code>脚本是否有效。</p><p id="191aed2d-4470-8014-b75c-f5d68963c615" class="">
-</p><p id="191aed2d-4470-80c3-95f7-ea3b190ba020" class="">下方的<code>&quot;lint-staged&quot;</code> 是<code>lint-staged</code>的配置项，你也可以根据不同的文件类型运行不同的脚本，也可以依次使用多个检查脚本，如下方示例：</p><p id="191aed2d-4470-8037-97cc-d60dbaafee13" class="">
-</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80d3-abe2-ec873b7887bb" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">&quot;lint-staged&quot;: {
+}</code></pre>
+          <p id="191aed2d-4470-8098-807d-c7e9b45ce162" class="">脚本配置完整之后可以尝试<code>&quot;lint-staged&quot;</code>脚本是否有效。
+          </p>
+          <p id="191aed2d-4470-8014-b75c-f5d68963c615" class="">
+          </p>
+          <p id="191aed2d-4470-80c3-95f7-ea3b190ba020" class="">下方的<code>&quot;lint-staged&quot;</code>
+            是<code>lint-staged</code>的配置项，你也可以根据不同的文件类型运行不同的脚本，也可以依次使用多个检查脚本，如下方示例：</p>
+          <p id="191aed2d-4470-8037-97cc-d60dbaafee13" class="">
+          </p>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+            integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+            crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+            crossorigin="anonymous" referrerPolicy="no-referrer" />
+          <pre id="191aed2d-4470-80d3-abe2-ec873b7887bb" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all">&quot;lint-staged&quot;: {
 	&quot;**/*.{js,ts,less,md,json}&quot;:[
 		&quot;pnpm run test_1&quot;,
 		&quot;pnpm run test_2&quot;
@@ -1009,11 +1493,70 @@ export default [
 	&quot;**/*.{cjs,mjs,jsx,tsx}&quot;: [
 		&quot;pnpm exec eslint --fix&quot;
 	]
-}</code></pre><p id="191aed2d-4470-806f-9c48-c9e75514d668" class="">但因为在前文的配置中 prettier 规则已经内置于 eslint 规则中，此处仅配置 eslint 的脚本即可。</p><p id="191aed2d-4470-805a-8316-e4fca01323bb" class="">
-</p><p id="191aed2d-4470-803b-a92b-d3a20571c9fe" class="">
-</p></div></details><h1 id="191aed2d-4470-8089-973b-ecacc965ec23" class="">三、Git检查</h1><h2 id="191aed2d-4470-80fa-9642-cb35b99370fb" class="">（一）commitlint</h2><p id="191aed2d-4470-80ea-9cb8-c7fc1371bcb7" class="">
-</p><blockquote id="191aed2d-4470-809f-a364-c00cea6c31c5" class="">用于规范和检查你的提交信息格式。<p id="191aed2d-4470-80f4-9d7d-cd3cbb170475" class="">commitlint官网：</p><figure id="191aed2d-4470-8099-ad82-c158862e7e5c"><a href="https://commitlint.js.org/guides/local-setup.html" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">Guide: Local setup | commitlint</div><div class="bookmark-description">Lint commit messages</div></div><div class="bookmark-href"><img src="https://commitlint.js.org/assets/icon.png" class="icon bookmark-icon"/>https://commitlint.js.org/guides/local-setup.html</div></div></a></figure></blockquote><p id="191aed2d-4470-809c-a25b-eb30cb90f3bb" class="">
-</p><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary><div class="indented"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-800e-973d-f6070e5b12aa" class="code"><code class="language-Shell">pnpm add @commitlint/cli @commitlint/config-conventional @commitlint/types -D</code></pre></div></details><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary><div class="indented"><ol type="1" id="191aed2d-4470-805e-a048-dc69e89381a8" class="numbered-list" start="1"><li>配置<code>commitlint.config.cjs</code>文件<blockquote id="191aed2d-4470-80a4-a922-fb2b10e7f6ec" class="">注意：<mark class="highlight-orange">如果你需要后文</mark><code>cz-git</code><mark class="highlight-orange">的引导性提交功能，会有另外的</mark><code>commitlint.config.cjs</code><mark class="highlight-orange">配置，可直接前往查看</mark><code>cz-git</code><mark class="highlight-orange">教程。此处示例不包括</mark><code>cz-git</code><mark class="highlight-orange">配置项；</mark><p id="191aed2d-4470-806a-9f38-c963b9530ca4" class=""><mark class="highlight-yellow">规则没有逐一测试检查，如有错误还请反馈。</mark></p></blockquote><p id="191aed2d-4470-80b9-b8fe-d88dc1b01872" class="">项目根目录下创建<code>commitlint.config.cjs</code>文件，自定义<code>commitlint</code>格式配置。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80d4-abd5-f09d36579c14" class="code"><code class="language-JavaScript">// commitlint.config.cjs
+}</code></pre>
+          <p id="191aed2d-4470-806f-9c48-c9e75514d668" class="">但因为在前文的配置中 prettier 规则已经内置于 eslint 规则中，此处仅配置 eslint
+            的脚本即可。</p>
+          <p id="191aed2d-4470-805a-8316-e4fca01323bb" class="">
+          </p>
+          <p id="191aed2d-4470-803b-a92b-d3a20571c9fe" class="">
+          </p>
+        </div>
+      </details>
+      <h1 id="191aed2d-4470-8089-973b-ecacc965ec23" class="">三、Git检查</h1>
+      <h2 id="191aed2d-4470-80fa-9642-cb35b99370fb" class="">（一）commitlint</h2>
+      <p id="191aed2d-4470-80ea-9cb8-c7fc1371bcb7" class="">
+      </p>
+      <blockquote id="191aed2d-4470-809f-a364-c00cea6c31c5" class="">用于规范和检查你的提交信息格式。<p
+          id="191aed2d-4470-80f4-9d7d-cd3cbb170475" class="">commitlint官网：</p>
+        <figure id="191aed2d-4470-8099-ad82-c158862e7e5c"><a href="https://commitlint.js.org/guides/local-setup.html"
+            class="bookmark source">
+            <div class="bookmark-info">
+              <div class="bookmark-text">
+                <div class="bookmark-title">Guide: Local setup | commitlint</div>
+                <div class="bookmark-description">Lint commit messages</div>
+              </div>
+              <div class="bookmark-href"><img src="https://commitlint.js.org/assets/icon.png"
+                  class="icon bookmark-icon" />https://commitlint.js.org/guides/local-setup.html</div>
+            </div>
+          </a></figure>
+      </blockquote>
+      <p id="191aed2d-4470-809c-a25b-eb30cb90f3bb" class="">
+      </p>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary>
+        <div class="indented">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+            integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+            crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+            integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+            crossorigin="anonymous" referrerPolicy="no-referrer" />
+          <pre id="191aed2d-4470-800e-973d-f6070e5b12aa"
+            class="code"><code class="language-Shell">pnpm add @commitlint/cli @commitlint/config-conventional @commitlint/types -D</code></pre>
+        </div>
+      </details>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary>
+        <div class="indented">
+          <ol type="1" id="191aed2d-4470-805e-a048-dc69e89381a8" class="numbered-list" start="1">
+            <li>配置<code>commitlint.config.cjs</code>文件<blockquote id="191aed2d-4470-80a4-a922-fb2b10e7f6ec" class="">
+                注意：<mark class="highlight-orange">如果你需要后文</mark><code>cz-git</code><mark
+                  class="highlight-orange">的引导性提交功能，会有另外的</mark><code>commitlint.config.cjs</code><mark
+                  class="highlight-orange">配置，可直接前往查看</mark><code>cz-git</code><mark
+                  class="highlight-orange">教程。此处示例不包括</mark><code>cz-git</code><mark
+                  class="highlight-orange">配置项；</mark>
+                <p id="191aed2d-4470-806a-9f38-c963b9530ca4" class=""><mark
+                    class="highlight-yellow">规则没有逐一测试检查，如有错误还请反馈。</mark></p>
+              </blockquote>
+              <p id="191aed2d-4470-80b9-b8fe-d88dc1b01872" class="">
+                项目根目录下创建<code>commitlint.config.cjs</code>文件，自定义<code>commitlint</code>格式配置。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80d4-abd5-f09d36579c14" class="code"><code class="language-JavaScript">// commitlint.config.cjs
 // @see https://commitlint.js.org/
 module.exports = {
   extends: [&quot;@commitlint/config-conventional&quot;],
@@ -1050,14 +1593,122 @@ module.exports = {
         &quot;revert&quot;, // 回滚提交的代码
       ],
     ],
-    &quot;revert-case&quot;: [0], // 关闭对 `revert` 提交的大小写检查
   }
 }
-</code></pre></li></ol><ol type="1" id="191aed2d-4470-80e0-8727-d7a17bf59974" class="numbered-list" start="2"><li>测试脚本<blockquote id="191aed2d-4470-80d9-afb6-d404a4659e8f" class="">注意：<mark class="highlight-orange">因为下文才会配置 </mark><code>husky</code><mark class="highlight-orange">来在每次提交时自动运行</mark><code>commitlint </code><mark class="highlight-orange">脚本，所以此处只能手动运行</mark> <code>commitlint </code><mark class="highlight-orange">检查上一次的提交信息。</mark></blockquote><p id="191aed2d-4470-8078-baae-c04eeb8753d7" class="">运行下方命令，可以检查上一次的提交信息是否符合规则。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8038-9b82-eb7f7e835076" class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">commitlint --edit .git/COMMIT_EDITMSG</code></pre></li></ol><p id="191aed2d-4470-80dc-81a5-f98e01a3df2f" class="">
-</p><p id="191aed2d-4470-80fe-bf04-e21649d57dda" class="">
-</p></div></details><h2 id="191aed2d-4470-8087-b51c-e9718eb8e7c3" class="">（二）cz-git</h2><p id="191aed2d-4470-80a3-8f8b-c98324b3fdec" class="">
-</p><blockquote id="191aed2d-4470-8020-8634-f9a899352db7" class="">用于引导开发者填写提交信息。<p id="191aed2d-4470-80fb-8925-de2622c50b66" class="">如开发者所说，我也是尝试了<strong><a href="https://github.com/leoforfree/cz-customizable">cz-customizable</a></strong><strong> 和 </strong><strong><a href="https://github.com/streamich/git-cz">git-cz</a></strong> 之后觉得配置过少，最后才选择了<code>cz-git</code>。</p><p id="191aed2d-4470-80c0-97ff-d027f9e01483" class="">cz-git 官网：</p><figure id="191aed2d-4470-800e-8690-d1bcc8f7d857"><a href="https://cz-git.qbb.sh/zh/guide/" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">cz-git - commitizen adapter and CLI</div><div class="bookmark-description">支持 OpenAI 自动生成描述，且工程性更强，轻量级，高度自定义，输出标准格式的 commitizen 适配器与 git commit 命令行工具。</div></div><div class="bookmark-href"><img src="https://cz-git.qbb.sh/images/icons/apple-touch-120x120.png" class="icon bookmark-icon"/>https://cz-git.qbb.sh/zh/guide/</div></div><img src="https://cz-git.qbb.sh/images/og-zh.png" class="bookmark-image"/></a></figure></blockquote><p id="191aed2d-4470-80ff-b731-d84307c89fc6" class="">
-</p><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary><div class="indented"><ol type="1" id="191aed2d-4470-8059-b2bc-d4af5990f1dc" class="numbered-list" start="1"><li>安装<code>commitizen</code><p id="191aed2d-4470-80a0-8b12-e649f2b5768d" class=""><code>cz-git</code>需要全局安装<code>commitizen</code>来运行。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80d2-92aa-eca1aec2b7ca" class="code"><code class="language-Shell">pnpm add -g commitizen</code></pre></li></ol><ol type="1" id="191aed2d-4470-80de-8b86-d782fecc9fe6" class="numbered-list" start="2"><li>安装<code>cz-git</code><p id="191aed2d-4470-8034-be39-f35b98412c22" class=""><code>cz-git</code>可以全局安装也可以项目内安装，可以查看官网。</p><p id="191aed2d-4470-8089-9fbf-d1a78f650e3f" class="">全局安装可以在所有项目中使用，项目被安装仅在当前项目中生效。</p><p id="191aed2d-4470-801e-abc4-f24e86f316b1" class="">本示例采用项目内安装。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80e1-8704-ca0aed3e6c59" class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm add cz-git -D</code></pre></li></ol></div></details><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary><div class="indented"><p id="191aed2d-4470-80b4-a288-fdd376f712f1" class=""><code>cz-git</code>也有多种配置方式，单独文件配置或与提交检查工具的组合配置，详见官网。</p><p id="191aed2d-4470-80c7-9983-e3f3312e4b00" class="">本示例采用与<code>commitlint</code>的组合配置。</p><ol type="1" id="191aed2d-4470-80da-873f-f0fd14634d40" class="numbered-list" start="1"><li>配置<code>commitlint.config.cjs</code>文件<blockquote id="191aed2d-4470-80ba-bde4-f315607762c8" class="">注意：<mark class="highlight-orange">此处示例包括</mark><code>cz-git</code><mark class="highlight-orange">配置项和</mark><code>commitlint</code><mark class="highlight-orange">配置项，其中</mark><code>cz-git</code><mark class="highlight-orange">的配置项都在</mark><code>prompt</code><mark class="highlight-orange">中，其余部分都是</mark><code>commitlint</code><mark class="highlight-orange">配置项；</mark><p id="191aed2d-4470-80a3-b6c7-c7b88c632c5d" class=""><mark class="highlight-brown">外部的scope本地缓存设置若不需要可删除相关代码；</mark></p><p id="191aed2d-4470-80c4-8b99-e0e9bd6c6583" class=""><mark class="highlight-yellow">规则没有每一项都测试检查，如有错误还请反馈。</mark></p></blockquote><p id="191aed2d-4470-801b-aec6-f0c5eff6e9f4" class="">项目根目录下创建<code>commitlint.config.cjs</code>文件，自定义<code>commitlint</code>格式配置和<code>cz-git</code><mark class="highlight-default">配置项，以及</mark><code>cz-git</code><mark class="highlight-default">的scope本地缓存设置项。</mark></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80fe-9e48-c994ee24dd4b" class="code"><code class="language-JavaScript">// commitlint.config.cjs
+</code></pre>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-80e0-8727-d7a17bf59974" class="numbered-list" start="2">
+            <li>测试脚本<blockquote id="191aed2d-4470-80d9-afb6-d404a4659e8f" class="">注意：<mark
+                  class="highlight-orange">因为下文才会配置 </mark><code>husky</code><mark
+                  class="highlight-orange">来在每次提交时自动运行</mark><code>commitlint </code><mark
+                  class="highlight-orange">脚本，所以此处只能手动运行</mark> <code>commitlint </code><mark
+                  class="highlight-orange">检查上一次的提交信息。</mark></blockquote>
+              <p id="191aed2d-4470-8078-baae-c04eeb8753d7" class="">运行下方命令，可以检查上一次的提交信息是否符合规则。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8038-9b82-eb7f7e835076"
+                class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">commitlint --edit .git/COMMIT_EDITMSG</code></pre>
+            </li>
+          </ol>
+          <p id="191aed2d-4470-80dc-81a5-f98e01a3df2f" class="">
+          </p>
+          <p id="191aed2d-4470-80fe-bf04-e21649d57dda" class="">
+          </p>
+        </div>
+      </details>
+      <h2 id="191aed2d-4470-8087-b51c-e9718eb8e7c3" class="">（二）cz-git</h2>
+      <p id="191aed2d-4470-80a3-8f8b-c98324b3fdec" class="">
+      </p>
+      <blockquote id="191aed2d-4470-8020-8634-f9a899352db7" class="">用于引导开发者填写提交信息。<p
+          id="191aed2d-4470-80fb-8925-de2622c50b66" class="">如开发者所说，我也是尝试了<strong><a
+              href="https://github.com/leoforfree/cz-customizable">cz-customizable</a></strong><strong> 和
+          </strong><strong><a
+              href="https://github.com/streamich/git-cz">git-cz</a></strong> 之后觉得配置过少，最后才选择了<code>cz-git</code>。</p>
+        <p id="191aed2d-4470-80c0-97ff-d027f9e01483" class="">cz-git 官网：</p>
+        <figure id="191aed2d-4470-800e-8690-d1bcc8f7d857"><a href="https://cz-git.qbb.sh/zh/guide/"
+            class="bookmark source">
+            <div class="bookmark-info">
+              <div class="bookmark-text">
+                <div class="bookmark-title">cz-git - commitizen adapter and CLI</div>
+                <div class="bookmark-description">支持 OpenAI 自动生成描述，且工程性更强，轻量级，高度自定义，输出标准格式的 commitizen 适配器与 git commit
+                  命令行工具。</div>
+              </div>
+              <div class="bookmark-href"><img src="https://cz-git.qbb.sh/images/icons/apple-touch-120x120.png"
+                  class="icon bookmark-icon" />https://cz-git.qbb.sh/zh/guide/</div>
+            </div><img src="https://cz-git.qbb.sh/images/og-zh.png" class="bookmark-image" />
+          </a></figure>
+      </blockquote>
+      <p id="191aed2d-4470-80ff-b731-d84307c89fc6" class="">
+      </p>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary>
+        <div class="indented">
+          <ol type="1" id="191aed2d-4470-8059-b2bc-d4af5990f1dc" class="numbered-list" start="1">
+            <li>安装<code>commitizen</code>
+              <p id="191aed2d-4470-80a0-8b12-e649f2b5768d" class=""><code>cz-git</code>需要全局安装<code>commitizen</code>来运行。
+              </p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80d2-92aa-eca1aec2b7ca"
+                class="code"><code class="language-Shell">pnpm add -g commitizen</code></pre>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-80de-8b86-d782fecc9fe6" class="numbered-list" start="2">
+            <li>安装<code>cz-git</code>
+              <p id="191aed2d-4470-8034-be39-f35b98412c22" class=""><code>cz-git</code>可以全局安装也可以项目内安装，可以查看官网。</p>
+              <p id="191aed2d-4470-8089-9fbf-d1a78f650e3f" class="">全局安装可以在所有项目中使用，项目被安装仅在当前项目中生效。</p>
+              <p id="191aed2d-4470-801e-abc4-f24e86f316b1" class="">本示例采用项目内安装。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80e1-8704-ca0aed3e6c59"
+                class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm add cz-git -D</code></pre>
+            </li>
+          </ol>
+        </div>
+      </details>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary>
+        <div class="indented">
+          <p id="191aed2d-4470-80b4-a288-fdd376f712f1" class=""><code>cz-git</code>也有多种配置方式，单独文件配置或与提交检查工具的组合配置，详见官网。
+          </p>
+          <p id="191aed2d-4470-80c7-9983-e3f3312e4b00" class="">本示例采用与<code>commitlint</code>的组合配置。</p>
+          <ol type="1" id="191aed2d-4470-80da-873f-f0fd14634d40" class="numbered-list" start="1">
+            <li>配置<code>commitlint.config.cjs</code>文件<blockquote id="191aed2d-4470-80ba-bde4-f315607762c8" class="">
+                注意：<mark class="highlight-orange">此处示例包括</mark><code>cz-git</code><mark
+                  class="highlight-orange">配置项和</mark><code>commitlint</code><mark
+                  class="highlight-orange">配置项，其中</mark><code>cz-git</code><mark
+                  class="highlight-orange">的配置项都在</mark><code>prompt</code><mark
+                  class="highlight-orange">中，其余部分都是</mark><code>commitlint</code><mark
+                  class="highlight-orange">配置项；</mark>
+                <p id="191aed2d-4470-80a3-b6c7-c7b88c632c5d" class=""><mark
+                    class="highlight-brown">外部的scope本地缓存设置若不需要可删除相关代码；</mark></p>
+                <p id="191aed2d-4470-80c4-8b99-e0e9bd6c6583" class=""><mark
+                    class="highlight-yellow">规则没有每一项都测试检查，如有错误还请反馈。</mark></p>
+              </blockquote>
+              <p id="191aed2d-4470-801b-aec6-f0c5eff6e9f4" class="">
+                项目根目录下创建<code>commitlint.config.cjs</code>文件，自定义<code>commitlint</code>格式配置和<code>cz-git</code><mark
+                  class="highlight-default">配置项，以及</mark><code>cz-git</code><mark
+                  class="highlight-default">的scope本地缓存设置项。</mark></p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80fe-9e48-c994ee24dd4b" class="code"><code class="language-JavaScript">// commitlint.config.cjs
 // @see https://commitlint.js.org/
 // @see https://cz-git.qbb.sh/zh/guide/
 const { defineConfig } = require(&quot;cz-git&quot;)
@@ -1151,7 +1802,6 @@ module.exports = defineConfig({
         &quot;revert&quot;, // 回滚提交的代码
       ],
     ],
-    &quot;revert-case&quot;: [0], // 关闭对 `revert` 提交的大小写检查
   },
   prompt: {
     alias: { fd: &quot;docs: fix typos&quot; },
@@ -1247,31 +1897,233 @@ module.exports = defineConfig({
     enableMultipleScopes: true, //是否开启在选择 模块范围 时使用多选模式
   },
 })
-</code></pre></li></ol><ol type="1" id="191aed2d-4470-80a1-8b4f-ea62775f3bbc" class="numbered-list" start="2"><li> 在<code>package.json</code>中添加脚本<blockquote id="191aed2d-4470-8083-b8da-d9b975b4f22a" class="">注意：<mark class="highlight-orange">因为下文才会配置 </mark><code>husky</code><mark class="highlight-orange">来在每次提交时自动运行</mark><code>commitlint </code><mark class="highlight-orange">脚本，所以此处只能测试</mark><code>cz-git</code><mark class="highlight-orange">是否正常工作，无法测试</mark> <code>commitlint </code><mark class="highlight-brown">检查。</mark></blockquote><p id="191aed2d-4470-8038-a34f-fcae9fb1c10d" class="">注意<code>config</code>与<code>scripts</code>同级。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8006-8383-d1f0c5adb3ca" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all"> {
+</code></pre>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-80a1-8b4f-ea62775f3bbc" class="numbered-list" start="2">
+            <li> 在<code>package.json</code>中添加脚本<blockquote id="191aed2d-4470-8083-b8da-d9b975b4f22a" class="">注意：<mark
+                  class="highlight-orange">因为下文才会配置 </mark><code>husky</code><mark
+                  class="highlight-orange">来在每次提交时自动运行</mark><code>commitlint </code><mark
+                  class="highlight-orange">脚本，所以此处只能测试</mark><code>cz-git</code><mark
+                  class="highlight-orange">是否正常工作，无法测试</mark> <code>commitlint </code><mark
+                  class="highlight-brown">检查。</mark></blockquote>
+              <p id="191aed2d-4470-8038-a34f-fcae9fb1c10d" class="">注意<code>config</code>与<code>scripts</code>同级。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8006-8383-d1f0c5adb3ca" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all"> {
  &quot;scripts&quot;: {},
  &quot;config&quot;: {
     &quot;commitizen&quot;: {
       &quot;path&quot;: &quot;node_modules/cz-git&quot;
     }
   }
- }</code></pre><p id="191aed2d-4470-805f-90a6-d2fe10de309d" class="">
-</p><p id="191aed2d-4470-80cd-b4c0-d04279784f61" class="">（1）修改项目内任意文件，并运行命令<code>git add .</code>将文件提交到暂存区之后；</p><p id="191aed2d-4470-807f-adf7-fabd28986110" class="">（2）运行命令<code>cz</code>或<code>git cz</code>会触发<code>git commit</code>提交操作；</p><p id="191aed2d-4470-8089-9a52-f5b4ea88ce7e" class="">（3）<mark class="highlight-default">如果</mark><code>cz-git</code><mark class="highlight-default">工作正常，会显示</mark><code>commitlint.config.cjs</code>的<code>prompt</code><mark class="highlight-default">的</mark><code>messages</code><mark class="highlight-default">信息，如下图。</mark></p><p id="191aed2d-4470-80de-acca-d84fe7b2fc85" class=""><mark class="highlight-default">（4）按</mark><code>Ctrl键+C键</code><mark class="highlight-default">即可退出。</mark></p><figure id="191aed2d-4470-800e-ba35-f05fea4410b4" class="image"><a href="image%201.png"><img style="width:625.9896240234375px" src="image%201.png"/></a></figure></li></ol></div></details><p id="191aed2d-4470-80f6-b649-d71205e8c1eb" class="">
-</p><h1 id="191aed2d-4470-803f-8890-f0d1e6726a01" class="">四、工作流合并</h1><h2 id="191aed2d-4470-801f-840d-c3097c146960" class="">husky</h2><blockquote id="191aed2d-4470-80ab-bd15-c34e14bc1f91" class="">用于在<code>git commit</code>前后执行自定义脚本的工具.<p id="191aed2d-4470-8012-961f-e5f1400e4793" class=""><mark class="highlight-orange">注意本示例使用的 husky 9，旧版本的配置与本示例不相同。</mark></p><p id="191aed2d-4470-80e8-bd4c-cb500b9c3946" class="">husky 官网：</p><figure id="191aed2d-4470-8005-baed-deb9e8cbdf9c"><a href="https://typicode.github.io/husky/zh/" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">Husky</div><div class="bookmark-description">使 Git hooks 变得简单</div></div><div class="bookmark-href">https://typicode.github.io/husky/zh/</div></div></a></figure></blockquote><p id="191aed2d-4470-8038-8343-e98a22fa72dc" class="">
-</p><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary><div class="indented"><ol type="1" id="191aed2d-4470-800a-ab18-f8d1e3cd77bc" class="numbered-list" start="1"><li>安装 husky<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8060-9987-f3e44a672cd4" class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm add husky -D</code></pre></li></ol><ol type="1" id="191aed2d-4470-804e-8dd2-f3351587132f" class="numbered-list" start="2"><li>初始化husky<p id="191aed2d-4470-802b-89e0-ddbec6d84af9" class="">此命令会在<code>package.json</code>中创建<code>prepare</code>脚本，在项目根目录下创建<code>.husky</code>文件夹，其中有<code>_</code>文件夹和<code>pre-commit</code>文件。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8086-bc44-e86d269ffc55" class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm exec husky init</code></pre><p id="191aed2d-4470-803e-8991-f01926ae2d66" class=""><code>prepare</code>脚本会在您<code>npm install</code>后自动安装Husky的钩子，用于给项目其他成员拉取代码后自动初始化<code>husky</code>。</p><p id="191aed2d-4470-808b-9356-ebd11e7461e8" class=""><code>_</code>文件夹中是husky的自带脚本，其文件命名代表git的Hooks的生命周期。开发者可遵照其中命名，在<code>_</code>文件夹同级的创建同名配置文件，在其中自定义需要运行的脚本。</p><p id="191aed2d-4470-8018-8ee2-d2d29eef5257" class="">例如<code>pre-commit</code>文件指在提交信息(引导)完成之后，提交代码到本地仓库之前执行。</p><p id="191aed2d-4470-80a6-8269-ea4fd0462902" class=""><mark class="highlight-orange">husky的配置文件会按git的Hooks生命周期依次执行，其中的脚本按先后顺序执行。</mark></p></li></ol><p id="191aed2d-4470-8006-a3d4-e001ad5c22f8" class="">
-</p></div></details><p id="191aed2d-4470-800e-9dfb-ffc73fe1b7c4" class="">
-</p><details open=""><summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary><div class="indented"><ol type="1" id="191aed2d-4470-8006-9bef-d7d79ee72f4f" class="numbered-list" start="1"><li>添加提交信息格式检查hook<p id="191aed2d-4470-8098-9957-fefb3d059a3e" class="">在此目录下新建<code>commit-msg</code>文件，在其中添加如下脚本。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8083-81e1-dbeb8f857afa" class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm exec commitlint --edit $1</code></pre><p id="191aed2d-4470-8060-95fc-caaa287fcd87" class="">这将在你填写完提交信息之后自动对提交信息进行格式检查。</p><p id="191aed2d-4470-806e-90ff-ca622b46da1a" class="">
-</p></li></ol><ol type="1" id="191aed2d-4470-8045-bc5c-db5cae2e478b" class="numbered-list" start="2"><li>添加代码格式检查hook<mark class="highlight-orange">【未配置</mark><code>cz-git</code><mark class="highlight-orange">】</mark><figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex" id="191aed2d-4470-80fc-8bb2-d022c224fa90"><div style="font-size:1.5em"><span class="icon">💡</span></div><div style="width:100%"><p id="191aed2d-4470-801c-91f7-cac2685b5c4a" class="">如果你没有配置<code>cz-git</code> ，进行如下配置</p></div></figure><p id="191aed2d-4470-80fb-93fe-e4c5b90aca56" class="">（1）删除<code>pre-commit</code>文件中的默认脚本<code>pnpm test</code>，添加下面的脚本；</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80c1-bf08-fcf6733b4a72" class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm exec lint-staged</code></pre><p id="191aed2d-4470-806f-ba79-fa32f2a2af7d" class="">这将在提交信息(引导)完成之后，提交代码到本地仓库之前执行之前，所有被修改的代码会添加到暂存区，然后运行配置的脚本<code>lint-staged</code>进行代码检查</p><p id="191aed2d-4470-802f-a891-c47b80029a2e" class="">
-</p><p id="191aed2d-4470-8044-a8c0-ec7680863106" class="">（2）在<code>package.json</code>中添加<code>commit</code>脚本。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-8004-b455-ffedeba1a04f" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all"> {
+ }</code></pre>
+              <p id="191aed2d-4470-805f-90a6-d2fe10de309d" class="">
+              </p>
+              <p id="191aed2d-4470-80cd-b4c0-d04279784f61" class="">（1）修改项目内任意文件，并运行命令<code>git add .</code>将文件提交到暂存区之后；
+              </p>
+              <p id="191aed2d-4470-807f-adf7-fabd28986110" class="">
+                （2）运行命令<code>cz</code>或<code>git cz</code>会触发<code>git commit</code>提交操作；</p>
+              <p id="191aed2d-4470-8089-9a52-f5b4ea88ce7e" class="">（3）<mark
+                  class="highlight-default">如果</mark><code>cz-git</code><mark
+                  class="highlight-default">工作正常，会显示</mark><code>commitlint.config.cjs</code>的<code>prompt</code><mark
+                  class="highlight-default">的</mark><code>messages</code><mark class="highlight-default">信息，如下图。</mark>
+              </p>
+              <p id="191aed2d-4470-80de-acca-d84fe7b2fc85" class=""><mark
+                  class="highlight-default">（4）按</mark><code>Ctrl键+C键</code><mark class="highlight-default">即可退出。</mark>
+              </p>
+              <figure id="191aed2d-4470-800e-ba35-f05fea4410b4" class="image"><a href="image%201.png"><img
+                    style="width:625.9896240234375px" src="image%201.png" /></a></figure>
+            </li>
+          </ol>
+        </div>
+      </details>
+      <p id="191aed2d-4470-80f6-b649-d71205e8c1eb" class="">
+      </p>
+      <h1 id="191aed2d-4470-803f-8890-f0d1e6726a01" class="">四、工作流合并</h1>
+      <h2 id="191aed2d-4470-801f-840d-c3097c146960" class="">husky</h2>
+      <blockquote id="191aed2d-4470-80ab-bd15-c34e14bc1f91" class="">用于在<code>git commit</code>前后执行自定义脚本的工具.<p
+          id="191aed2d-4470-8012-961f-e5f1400e4793" class=""><mark class="highlight-orange">注意本示例使用的 husky
+            9，旧版本的配置与本示例不相同。</mark></p>
+        <p id="191aed2d-4470-80e8-bd4c-cb500b9c3946" class="">husky 官网：</p>
+        <figure id="191aed2d-4470-8005-baed-deb9e8cbdf9c"><a href="https://typicode.github.io/husky/zh/"
+            class="bookmark source">
+            <div class="bookmark-info">
+              <div class="bookmark-text">
+                <div class="bookmark-title">Husky</div>
+                <div class="bookmark-description">使 Git hooks 变得简单</div>
+              </div>
+              <div class="bookmark-href">https://typicode.github.io/husky/zh/</div>
+            </div>
+          </a></figure>
+      </blockquote>
+      <p id="191aed2d-4470-8038-8343-e98a22fa72dc" class="">
+      </p>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">安装依赖</summary>
+        <div class="indented">
+          <ol type="1" id="191aed2d-4470-800a-ab18-f8d1e3cd77bc" class="numbered-list" start="1">
+            <li>安装 husky
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8060-9987-f3e44a672cd4"
+                class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm add husky -D</code></pre>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-804e-8dd2-f3351587132f" class="numbered-list" start="2">
+            <li>初始化husky<p id="191aed2d-4470-802b-89e0-ddbec6d84af9" class="">
+                此命令会在<code>package.json</code>中创建<code>prepare</code>脚本，在项目根目录下创建<code>.husky</code>文件夹，其中有<code>_</code>文件夹和<code>pre-commit</code>文件。
+              </p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8086-bc44-e86d269ffc55"
+                class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm exec husky init</code></pre>
+              <p id="191aed2d-4470-803e-8991-f01926ae2d66" class="">
+                <code>prepare</code>脚本会在您<code>npm install</code>后自动安装Husky的钩子，用于给项目其他成员拉取代码后自动初始化<code>husky</code>。
+              </p>
+              <p id="191aed2d-4470-808b-9356-ebd11e7461e8" class="">
+                <code>_</code>文件夹中是husky的自带脚本，其文件命名代表git的Hooks的生命周期。开发者可遵照其中命名，在<code>_</code>文件夹同级的创建同名配置文件，在其中自定义需要运行的脚本。
+              </p>
+              <p id="191aed2d-4470-8018-8ee2-d2d29eef5257" class="">
+                例如<code>pre-commit</code>文件指在提交信息(引导)完成之后，提交代码到本地仓库之前执行。</p>
+              <p id="191aed2d-4470-80a6-8269-ea4fd0462902" class=""><mark
+                  class="highlight-orange">husky的配置文件会按git的Hooks生命周期依次执行，其中的脚本按先后顺序执行。</mark></p>
+            </li>
+          </ol>
+          <p id="191aed2d-4470-8006-a3d4-e001ad5c22f8" class="">
+          </p>
+        </div>
+      </details>
+      <p id="191aed2d-4470-800e-9dfb-ffc73fe1b7c4" class="">
+      </p>
+      <details open="">
+        <summary style="font-weight:600;font-size:1.25em;line-height:1.3;margin:0">添加配置文件</summary>
+        <div class="indented">
+          <ol type="1" id="191aed2d-4470-8006-9bef-d7d79ee72f4f" class="numbered-list" start="1">
+            <li>添加提交信息格式检查hook<p id="191aed2d-4470-8098-9957-fefb3d059a3e" class="">
+                在此目录下新建<code>commit-msg</code>文件，在其中添加如下脚本。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8083-81e1-dbeb8f857afa"
+                class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm exec commitlint --edit $1</code></pre>
+              <p id="191aed2d-4470-8060-95fc-caaa287fcd87" class="">这将在你填写完提交信息之后自动对提交信息进行格式检查。</p>
+              <p id="191aed2d-4470-806e-90ff-ca622b46da1a" class="">
+              </p>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-8045-bc5c-db5cae2e478b" class="numbered-list" start="2">
+            <li>添加代码格式检查hook<mark class="highlight-orange">【未配置</mark><code>cz-git</code><mark
+                class="highlight-orange">】</mark>
+              <figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex"
+                id="191aed2d-4470-80fc-8bb2-d022c224fa90">
+                <div style="font-size:1.5em"><span class="icon">💡</span></div>
+                <div style="width:100%">
+                  <p id="191aed2d-4470-801c-91f7-cac2685b5c4a" class="">如果你没有配置<code>cz-git</code> ，进行如下配置</p>
+                </div>
+              </figure>
+              <p id="191aed2d-4470-80fb-93fe-e4c5b90aca56" class="">
+                （1）删除<code>pre-commit</code>文件中的默认脚本<code>pnpm test</code>，添加下面的脚本；</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80c1-bf08-fcf6733b4a72"
+                class="code"><code class="language-Shell" style="white-space:pre-wrap;word-break:break-all">pnpm exec lint-staged</code></pre>
+              <p id="191aed2d-4470-806f-ba79-fa32f2a2af7d" class="">
+                这将在提交信息(引导)完成之后，提交代码到本地仓库之前执行之前，所有被修改的代码会添加到暂存区，然后运行配置的脚本<code>lint-staged</code>进行代码检查</p>
+              <p id="191aed2d-4470-802f-a891-c47b80029a2e" class="">
+              </p>
+              <p id="191aed2d-4470-8044-a8c0-ec7680863106" class="">
+                （2）在<code>package.json</code>中添加<code>commit</code>脚本。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-8004-b455-ffedeba1a04f" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all"> {
  &quot;scripts&quot;: {
 	  &quot;commit&quot;: &quot;git add . &amp;&amp; git commit&quot;,
   }
- }</code></pre><p id="191aed2d-4470-8023-8c4d-dd6e45f3f36d" class="">每次执行时会先将被修改的代码添加到暂存区，然后进行提交操作。</p><p id="191aed2d-4470-80dd-9ac8-c696f2cc88f5" class="">此时会触发<code>husky</code>的<code>pre-commit</code>，运行配置的脚本<code>lint-staged</code>对暂存区代码进行检查，检查无误才能输入commit信息。</p><p id="191aed2d-4470-80d1-a9f0-f8583c6da03f" class="">commit信息输入完成之后会触发<code>husky</code>的<code>commit-msg</code>对其进行格式检查，然后<code>commitlint</code>检查无误才会将代码提交到本地仓库。</p><p id="191aed2d-4470-8023-8c6f-c4f0f9df83dd" class="">
-</p></li></ol><ol type="1" id="191aed2d-4470-80df-87b9-ef57941301b5" class="numbered-list" start="3"><li>添加代码格式检查hook<mark class="highlight-orange">【配置了</mark><code>cz-git</code><mark class="highlight-orange">】</mark><figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex" id="191aed2d-4470-80e9-9687-c26cdced3b06"><div style="font-size:1.5em"><span class="icon">💡</span></div><div style="width:100%"><p id="191aed2d-4470-8071-a878-ebb973bbf800" class="">如果你配置了<code>cz-git</code>，<mark class="highlight-teal"><strong>推荐</strong></mark>进行如下配置。</p><p id="191aed2d-4470-80b4-9173-e223e8760c69" class="">因为<code>cz-git</code>的执行时机比<code>pre-commit</code>更早，按上面的配置来，在引导提交信息之后，如果代码格式检查有问题，就需要修改代码之后重新填写commit信息，然后再次检查。</p><p id="191aed2d-4470-80e7-947e-c66c8a838b12" class="">当然，你也可以手动运行<code>lint</code>脚本先检查再提交</p></div></figure><p id="191aed2d-4470-8076-854f-db0286f91eef" class="">(1)用<code>#</code>注释<code>pre-commit</code>中的脚本，或直接删除<code>pre-commit</code>；</p><p id="191aed2d-4470-80dc-b001-c50a7f47bf1f" class="">
-</p><p id="191aed2d-4470-8076-888a-c6473f8dc31c" class="">(2)在<code>package.json</code>中添加<code>commit</code>脚本。</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="191aed2d-4470-80a0-a57d-f0c6d5bbe1b1" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all"> {
+ }</code></pre>
+              <p id="191aed2d-4470-8023-8c4d-dd6e45f3f36d" class="">每次执行时会先将被修改的代码添加到暂存区，然后进行提交操作。</p>
+              <p id="191aed2d-4470-80dd-9ac8-c696f2cc88f5" class="">
+                此时会触发<code>husky</code>的<code>pre-commit</code>，运行配置的脚本<code>lint-staged</code>对暂存区代码进行检查，检查无误才能输入commit信息。
+              </p>
+              <p id="191aed2d-4470-80d1-a9f0-f8583c6da03f" class="">
+                commit信息输入完成之后会触发<code>husky</code>的<code>commit-msg</code>对其进行格式检查，然后<code>commitlint</code>检查无误才会将代码提交到本地仓库。
+              </p>
+              <p id="191aed2d-4470-8023-8c6f-c4f0f9df83dd" class="">
+              </p>
+            </li>
+          </ol>
+          <ol type="1" id="191aed2d-4470-80df-87b9-ef57941301b5" class="numbered-list" start="3">
+            <li>添加代码格式检查hook<mark class="highlight-orange">【配置了</mark><code>cz-git</code><mark
+                class="highlight-orange">】</mark>
+              <figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex"
+                id="191aed2d-4470-80e9-9687-c26cdced3b06">
+                <div style="font-size:1.5em"><span class="icon">💡</span></div>
+                <div style="width:100%">
+                  <p id="191aed2d-4470-8071-a878-ebb973bbf800" class="">如果你配置了<code>cz-git</code>，<mark
+                      class="highlight-teal"><strong>推荐</strong></mark>进行如下配置。</p>
+                  <p id="191aed2d-4470-80b4-9173-e223e8760c69" class="">
+                    因为<code>cz-git</code>的执行时机比<code>pre-commit</code>更早，按上面的配置来，在引导提交信息之后，如果代码格式检查有问题，就需要修改代码之后重新填写commit信息，然后再次检查。
+                  </p>
+                  <p id="191aed2d-4470-80e7-947e-c66c8a838b12" class="">当然，你也可以手动运行<code>lint</code>脚本先检查再提交</p>
+                </div>
+              </figure>
+              <p id="191aed2d-4470-8076-854f-db0286f91eef" class="">
+                (1)用<code>#</code>注释<code>pre-commit</code>中的脚本，或直接删除<code>pre-commit</code>；</p>
+              <p id="191aed2d-4470-80dc-b001-c50a7f47bf1f" class="">
+              </p>
+              <p id="191aed2d-4470-8076-888a-c6473f8dc31c" class="">
+                (2)在<code>package.json</code>中添加<code>commit</code>脚本。</p>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+                integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg=="
+                crossorigin="anonymous" referrerPolicy="no-referrer"></script>
+              <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ=="
+                crossorigin="anonymous" referrerPolicy="no-referrer" />
+              <pre id="191aed2d-4470-80a0-a57d-f0c6d5bbe1b1" class="code"><code class="language-JSON" style="white-space:pre-wrap;word-break:break-all"> {
  &quot;scripts&quot;: {
 	  &quot;commit&quot;: &quot;git add . &amp;&amp; pnpm exec lint-staged &amp;&amp; cz&quot;,
   }
- }</code></pre><p id="191aed2d-4470-8066-bc5c-d1669aa4cd2c" class="">每次执行时会先将被修改的代码添加到暂存区，然后运行配置的脚本<code>lint-staged</code>进行代码检查，检查无误才会执行<code>cz</code>进行引导式提交。</p><p id="191aed2d-4470-80fa-a01c-e36a88919ae4" class="">commit信息输入完成之后会触发<code>husky</code>的<code>commit-msg</code>对其进行格式检查，然后<code>commitlint</code>检查无误才会将代码提交到本地仓库。</p></li></ol><p id="191aed2d-4470-80e6-bc6f-f4166faec502" class="">
-</p></div></details><p id="191aed2d-4470-8024-b114-ed02cc2f914f" class="">
-</p><p id="191aed2d-4470-8041-b25b-d135a718b53c" class="">
-</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
+ }</code></pre>
+              <p id="191aed2d-4470-8066-bc5c-d1669aa4cd2c" class="">
+                每次执行时会先将被修改的代码添加到暂存区，然后运行配置的脚本<code>lint-staged</code>进行代码检查，检查无误才会执行<code>cz</code>进行引导式提交。</p>
+              <p id="191aed2d-4470-80fa-a01c-e36a88919ae4" class="">
+                commit信息输入完成之后会触发<code>husky</code>的<code>commit-msg</code>对其进行格式检查，然后<code>commitlint</code>检查无误才会将代码提交到本地仓库。
+              </p>
+            </li>
+          </ol>
+          <p id="191aed2d-4470-80e6-bc6f-f4166faec502" class="">
+          </p>
+        </div>
+      </details>
+      <p id="191aed2d-4470-8024-b114-ed02cc2f914f" class="">
+      </p>
+      <p id="191aed2d-4470-8041-b25b-d135a718b53c" class="">
+      </p>
+    </div>
+  </article><span class="sans" style="font-size:14px;padding-top:2em"></span>
+</body>
+
+</html>
