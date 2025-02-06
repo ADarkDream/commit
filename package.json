@@ -11,8 +11,8 @@
     "lint": "eslint . --fix",
     "lint:prettier": "prettier . --write",
     "lint:commitlint": "commitlint --edit $1",
-    "commit": "git add . && pnpm exec lint-staged && cz",
-    "prepare": "husky"
+    "lint:diff": "git add . && pnpm exec lint-staged",
+    "commit": "pnpm run lint:diff && cz"
   },
   "lint-staged": {
     "**/*.{cjs,mjs,js,jsx,tsx,ts,less,md,json}": [

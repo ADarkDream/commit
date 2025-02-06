@@ -6,7 +6,7 @@ const fs = require("fs")
 
 //#region scope本地缓存设置,每次新增的自定义scope都会追加到scope选项末尾
 /**项目配置的默认scope*/
-const defaultScopeArr = ["core", "deps", "config", "ui", "auth", "api", "store", "hook", "util"]
+const defaultScopeArr = ["core", "deps", "config", "ui", "auth", "api", "store", "hook", "util", "vite", "readme"]
 
 /**本地缓存文件，可在本地git仓库中查看或删除(需要在资源管理器中打开隐藏文件夹)*/
 const __SCOPE_CACHE_PATH = resolve(__dirname, "./.git/scope-cache.json")
@@ -51,7 +51,7 @@ const getCacheScope = () => {
     return defaultScopeArr
   } else {
     const cacheScopeArr = JSON.parse(fs.readFileSync(__SCOPE_CACHE_PATH, "utf8"))
-    return [...new Set([...defaultScopeArr, ...cacheScopeArr])]
+    return [...new Set([defaultScopeArr, ...cacheScopeArr])]
   }
 }
 //#endregion
@@ -96,12 +96,12 @@ module.exports = defineConfig({
     alias: { fd: "docs: fix typos" },
     messages: {
       type: "选择你要提交的类型 :",
-      scope: "选择一个提交范围（可选，custom为自定义，空格键或右键多选，回车键确认）:",
+      scope: "选择一个提交范围（可为空，可自定义，空格键或右键可多选，回车键确认）:",
       customScope: "请输入自定义的提交范围（仅支持用下划线、中文字符、小写英文字符、数字，且用 , 分隔）:",
       subject: "填写简短精炼的变更描述 :\n",
       body: "填写更加详细的变更描述（可选）。使用 | 换行 :\n",
       breaking: "列举非兼容性重大的变更（可选）。使用 | 换行 :\n",
-      footerPrefixesSelect: "选择关联issue前缀（可选）:",
+      // footerPrefixesSelect: "选择关联issue前缀（可选）:",
       customFooterPrefix: "输入自定义issue前缀 :",
       footer: "列举关联issue (可选) 例如: #31, #I3244 :\n",
       confirmCommit: "是否提交或修改commit ?",
@@ -159,19 +159,19 @@ module.exports = defineConfig({
     allowCustomScopes: true,
     allowEmptyScopes: true,
     customScopesAlign: "bottom",
-    customScopesAlias: "custom",
-    emptyScopesAlias: "empty",
+    customScopesAlias: "自定义",
+    emptyScopesAlias: "空",
     upperCaseSubject: false,
     markBreakingChangeMode: false, //描述 : 添加额外的问题重大变更(BREAKING CHANGES)提问，询问是否需要添加 "!" 标识于头部
     allowBreakingChanges: ["feat", "fix"], //仅这两项允许破坏性提交
     breaklineNumber: 100,
     breaklineChar: "|",
     skipQuestions: [],
-    issuePrefixes: [
-      // 如果使用 gitee 作为开发管理
-      { value: "link", name: "link:     链接 ISSUES 进行中" },
-      { value: "closed", name: "closed:   标记 ISSUES 已完成" },
-    ],
+    // issuePrefixes: [
+    //   // 如果使用 gitee 作为开发管理
+    //   { value: "link", name: "link:     链接 ISSUES 进行中" },
+    //   { value: "closed", name: "closed:   标记 ISSUES 已完成" },
+    // ],
     customIssuePrefixAlign: "top",
     emptyIssuePrefixAlias: "skip",
     customIssuePrefixAlias: "custom",
