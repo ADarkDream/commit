@@ -14,7 +14,7 @@ const __SCOPE_CACHE_PATH = resolve(__dirname, "./.git/scope-cache.json")
 
 /**
  * 校验scope是否合法
- * @param {string} scope - 自定义scope
+ * @param scope - 自定义scope
  */
 const isValidScope = (scope) => {
   const regex = /^[a-zA-Z0-9\u4e00-\u9fa5_-]+$/ // 只允许字母、数字、下划线、中文、逗号
@@ -23,7 +23,7 @@ const isValidScope = (scope) => {
 
 /**
  * 将自定义scope写入缓存
- * @param {string} scope - 自定义scope
+ * @param scope - 自定义scope
  */
 const setCacheScope = (scope) => {
   if (!scope) return

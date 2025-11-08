@@ -42,12 +42,13 @@ export default [
   eslintPluginPrettierRecommended,
 
   /** JSDoc 推荐配置(JS项目用前一个，TS项目用后一个) */
-  jsdoc.configs["flat/recommended-typescript-flavor"],
-  // jsdoc.configs["flat/recommended-typescript"],
+  // jsdoc.configs["flat/recommended-typescript-flavor"],
+  jsdoc.configs["flat/recommended-typescript"],
 
   /**自定义规则*/
   {
     files: ["**/*.{js,mjs,cjs,ts,vue}"],
+    // Vue+TS项目需要的解析器和插件
     languageOptions: {
       parser: vueParser,
       globals: { ...globals.browser, ...globals.node },
@@ -62,27 +63,30 @@ export default [
       },
     },
     plugins: {
+      // TS项目才使用
       "@typescript-eslint": tseslint,
       prettier: prettier,
+      // Vue项目才使用
       vue: eslintPluginVue,
       jsdoc,
       import: importPlugin, // 直接使用插件对象
     },
-    // settings: {
-    //   // 配置 import 解析器（TS项目才启用下方注释部分）
-    //   "import/resolver": {
-    //     typescript: {
-    //       // 总是尝试解析 typescript@next 的类型
-    //       alwaysTryTypes: true,
-    //       // 根据你的项目结构调整路径
-    //       project: "./tsconfig.json",
-    //     },
-    //     node: true,
-    //   },
-    //   "import/parsers": {
-    //     "@typescript-eslint/parser": [".js", ".mjs", ".cjs", ".ts", ".tsx"],
-    //   },
-    // },
+    // TS项目才使用settings部分
+    settings: {
+      // 配置 import 解析器
+      "import/resolver": {
+        typescript: {
+          // 总是尝试解析 typescript@next 的类型
+          alwaysTryTypes: true,
+          project: "./tsconfig.json",
+        },
+        node: true,
+      },
+      "import/parsers": {
+        "@typescript-eslint/parser": [".js", ".mjs", ".cjs", ".ts", ".tsx"],
+      },
+    },
+    // 下列规则按需启用
     rules: {
       // 让 ESLint 执行 Prettier 规则
       "prettier/prettier": ["error", prettierConfig],
@@ -90,8 +94,8 @@ export default [
       // JSDoc 是否需要描述信息
       "jsdoc/require-description": "warn",
 
-      // 是否要求 @param 声明类型
-      // "jsdoc/require-param-type": "warn",
+      // 是否要求 @param 声明类型（TS规则默认off，JS规则默认warn）
+      "jsdoc/require-param-type": "off",
 
       // JSDoc 是否需要返回信息
       "jsdoc/require-returns": "off",
@@ -226,6 +230,24 @@ export default [
 
       // 允许使用 v-html 指令
       "vue/no-v-html": "off",
+
+      // 检查 import 的路径是否能被解析
+      "import/no-unresolved": "error",
+
+      // 确保从模块中导入的命名导出在实际模块中存在
+      "import/named": "error",
+
+      // 确保默认导入（default import）在模块中存在
+      "import/default": "error",
+
+      // 确保命名空间导入（import * as xxx）时，导入的对象是合法的模块对象
+      "import/namespace": "error",
+
+      // 检查 export 语法的正确性（例如重复导出或错误的导出引用）
+      "import/export": "error",
+
+      // 检测重复导入同一个模块
+      "import/no-duplicates": "warn",
 
       // 控制 import 语句的分组与排序规则
       "import/order": [
