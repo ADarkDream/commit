@@ -1,39 +1,49 @@
 // @see: https://eslint.nodejs.cn/docs
-
-import globals from "globals"
 import eslint from "@eslint/js"
-import tseslint from "typescript-eslint"
-import eslintPluginVue from "eslint-plugin-vue"
-import vueParser from "vue-eslint-parser"
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
+// import 导入排序规则：https://github.com/import-js/eslint-plugin-import
+import importPlugin from "eslint-plugin-import"
+// jsdoc 配置及规则参考：https://www.dongaigc.com/p/gajus/eslint-plugin-jsdoc#user-content-eslint-plugin-jsdoc-configuration-flat-config
+import jsdoc from "eslint-plugin-jsdoc"
 import prettier from "eslint-plugin-prettier"
-import prettierConfig from "./.prettierrc.cjs"
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
+import eslintPluginVue from "eslint-plugin-vue"
+import globals from "globals"
+import tseslint from "typescript-eslint"
+import vueParser from "vue-eslint-parser"
 
+import prettierConfig from "./.prettierrc.cjs"
 export default [
   {
-    /**忽略格式检查的文件列表*/
+    /** 忽略格式检查的文件列表 */
     ignores: [
-      "node_modules",
-      "dist",
-      ".gitignore",
-      "package.json",
-      "package-lock.json",
-      "dist-ssr",
-      "*.local",
-      ".npmrc",
-      ".DS_Store",
-      "dev-dist",
-      "dist_electron",
       "*.d.ts",
-      "src/assets/**",
+      "*.local",
+      ".DS_Store",
+      ".gitignore",
+      ".npmrc",
+      "dev-dist",
+      "dist-ssr",
+      "dist_electron",
+      "logs",
+      "node_modules",
+      "package-lock.json",
+      "temp",
+      "**/dist",
     ],
   },
+
   /** js推荐配置 */
   eslint.configs.recommended,
+
   /** vue推荐配置 */
   ...eslintPluginVue.configs["flat/recommended"],
+
   /** prettier 配置 */
   eslintPluginPrettierRecommended,
+
+  /** JSDoc 推荐配置(JS项目用前一个，TS项目用后一个) */
+  jsdoc.configs["flat/recommended-typescript-flavor"],
+  // jsdoc.configs["flat/recommended-typescript"],
 
   /**自定义规则*/
   {
@@ -55,21 +65,58 @@ export default [
       "@typescript-eslint": tseslint,
       prettier: prettier,
       vue: eslintPluginVue,
+      jsdoc,
+      import: importPlugin, // 直接使用插件对象
     },
+    // settings: {
+    //   // 配置 import 解析器（TS项目才启用下方注释部分）
+    //   "import/resolver": {
+    //     typescript: {
+    //       // 总是尝试解析 typescript@next 的类型
+    //       alwaysTryTypes: true,
+    //       // 根据你的项目结构调整路径
+    //       project: "./tsconfig.json",
+    //     },
+    //     node: true,
+    //   },
+    //   "import/parsers": {
+    //     "@typescript-eslint/parser": [".js", ".mjs", ".cjs", ".ts", ".tsx"],
+    //   },
+    // },
     rules: {
-      "prettier/prettier": ["error", prettierConfig], // 让 ESLint 执行 Prettier 规则
+      // 让 ESLint 执行 Prettier 规则
+      "prettier/prettier": ["error", prettierConfig],
+
+      // JSDoc 是否需要描述信息
+      "jsdoc/require-description": "warn",
+
+      // 是否要求 @param 声明类型
+      // "jsdoc/require-param-type": "warn",
+
+      // JSDoc 是否需要返回信息
+      "jsdoc/require-returns": "off",
+
+      // JSDoc 是否需要返回描述信息
+      "jsdoc/require-returns-description": "off",
+
       // 对象结尾逗号
       "comma-dangle": "off",
 
+      // 允许 console 用于调试
+      "no-console": "off",
+
       // 关闭未定义变量
       "no-undef": "off",
+
       //不使用的变量不报错
       "no-unused-vars": "off",
 
       // 禁止使用不规范的空格
       "no-irregular-whitespace": "off",
+
       // 构造函数首字母大写
       "new-cap": [2, { newIsCap: true, capIsNew: false }],
+
       // new 操作符使用时需要括号
       "new-parens": 2,
 
@@ -87,6 +134,7 @@ export default [
 
       // 禁止 const 重新分配
       "no-const-assign": 2,
+
       // 禁止删除变量
       "no-delete-var": 2,
 
@@ -148,8 +196,6 @@ export default [
       // 允许在一个文件中定义多个组件
       "vue/one-component-per-file": "off",
 
-      // 关闭 Prop 类型要求的警告
-      "vue/require-prop-types": "off",
       // 属性顺序要求
       "vue/attributes-order": [
         "error",
@@ -172,11 +218,39 @@ export default [
         },
       ],
 
+      // 关闭 Prop 类型要求的警告
+      "vue/require-prop-types": "off",
+
       // 关闭对默认 Prop 的要求
       "vue/require-default-prop": "off",
 
       // 允许使用 v-html 指令
       "vue/no-v-html": "off",
+
+      // 控制 import 语句的分组与排序规则
+      "import/order": [
+        "error",
+        {
+          // 分组顺序定义：从上到下依次排序
+          groups: [
+            "builtin", // Node.js 内置模块（fs、path 等）
+            "external", // 外部依赖包（npm 包，例如 vue、axios）
+            "internal", // 内部模块（项目 src 目录别名路径，如 @/utils）
+            "parent", // 父级目录导入（../）
+            "sibling", // 同级目录导入（./）
+            "index", // 当前目录下的 index 文件导入（./index）
+            "object", // 对象类型导入（ES2022 提案中的 import from object）
+            "type", // TypeScript 的类型导入（import type {...}）
+          ],
+          // 不同分组之间必须空一行
+          "newlines-between": "always",
+          // 按字母顺序排序
+          alphabetize: {
+            order: "asc", // 升序（A → Z）
+            caseInsensitive: true, // 忽略大小写
+          },
+        },
+      ],
     },
   },
 ]

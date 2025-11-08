@@ -12,6 +12,7 @@
     "lint:prettier": "prettier . --write",
     "lint:commitlint": "commitlint --edit $1",
     "lint:diff": "git add . && pnpm exec lint-staged",
+    "lint:settings": "npx @eslint/config-inspector@latest",
     "commit": "pnpm run lint:diff && cz"
   },
   "lint-staged": {
@@ -35,6 +36,8 @@
     "cz-git": "^1.11.0",
     "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^60.3.1",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-vue": "^9.32.0",
     "globals": "^15.14.0",

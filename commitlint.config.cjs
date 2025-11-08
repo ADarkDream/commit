@@ -1,8 +1,9 @@
 // @see https://commitlint.js.org/
+const fs = require("fs")
+const { resolve } = require("path")
+
 // @see https://cz-git.qbb.sh/zh/guide/
 const { defineConfig } = require("cz-git")
-const { resolve } = require("path")
-const fs = require("fs")
 
 //#region scope本地缓存设置,每次新增的自定义scope都会追加到scope选项末尾
 /**项目配置的默认scope*/
@@ -11,13 +12,19 @@ const defaultScopeArr = ["core", "deps", "config", "ui", "auth", "api", "store",
 /**本地缓存文件，可在本地git仓库中查看或删除(需要在资源管理器中打开隐藏文件夹)*/
 const __SCOPE_CACHE_PATH = resolve(__dirname, "./.git/scope-cache.json")
 
-/**用正则过滤只包含英文逗号、下划线、字母（中英文）、数字的有效 scope*/
+/**
+ * 校验scope是否合法
+ * @param {string} scope - 自定义scope
+ */
 const isValidScope = (scope) => {
   const regex = /^[a-zA-Z0-9\u4e00-\u9fa5_-]+$/ // 只允许字母、数字、下划线、中文、逗号
   return regex.test(scope)
 }
 
-/**将自定义scope写入缓存*/
+/**
+ * 将自定义scope写入缓存
+ * @param {string} scope - 自定义scope
+ */
 const setCacheScope = (scope) => {
   if (!scope) return
 
