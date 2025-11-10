@@ -2,6 +2,8 @@
 // @see: https://www.prettier.cn
 
 module.exports = {
+  // 使用的插件
+  plugins: ["prettier-plugin-packagejson"],
   // 指定最大换行长度(HTML 和 Vue 模板中的元素)
   printWidth: 130,
   // 强制文本换行(Markdown 和纯文本内容)

@@ -4,20 +4,21 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "lint-staged": "lint-staged",
-    "check:type": "vue-tsc --build --noEmit --force",
-    "check:prettier": "prettier --check .",
     "check": "eslint .",
+    "check:prettier": "prettier --check .",
+    "check:type": "vue-tsc --build --noEmit --force",
+    "commit": "pnpm run lint:diff && cz",
     "lint": "eslint . --fix",
-    "lint:prettier": "prettier . --write",
+    "lint-staged": "lint-staged",
     "lint:commitlint": "commitlint --edit $1",
     "lint:diff": "git add . && pnpm exec lint-staged",
-    "lint:settings": "npx @eslint/config-inspector@latest",
-    "commit": "pnpm run lint:diff && cz"
+    "lint:prettier": "prettier . --write",
+    "lint:settings": "npx @eslint/config-inspector@latest"
   },
   "lint-staged": {
     "**/*.{cjs,mjs,js,jsx,tsx,ts,less,md,json}": [
-      "pnpm exec eslint --fix"
+      "pnpm exec eslint --fix",
+      "prettier . --write"
     ]
   },
   "config": {
@@ -45,6 +46,7 @@
     "jiti": "^2.6.1",
     "lint-staged": "^15.5.2",
     "prettier": "^3.6.2",
+    "prettier-plugin-packagejson": "^2.5.19",
     "typescript-eslint": "^8.46.3",
     "vue-eslint-parser": "^9.4.3"
   }

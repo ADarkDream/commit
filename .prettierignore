@@ -9,3 +9,6 @@
 /public/*
 auto-imports.d.ts
 components.d.ts
+package-lock.json
+pnpm-lock.yaml
+src-tauri/target

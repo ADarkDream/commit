@@ -16,7 +16,7 @@ export default [
   {
     /** 忽略格式检查的文件列表 */
     ignores: [
-      "*.d.ts",
+      "**/dist",
       "*.local",
       ".DS_Store",
       ".gitignore",
@@ -27,8 +27,10 @@ export default [
       "logs",
       "node_modules",
       "package-lock.json",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "src-tauri/target",
       "temp",
-      "**/dist",
     ],
   },
 
@@ -103,9 +105,6 @@ export default [
       // JSDoc 是否需要返回描述信息
       "jsdoc/require-returns-description": "off",
 
-      // 对象结尾逗号
-      "comma-dangle": "off",
-
       // 允许 console 用于调试
       "no-console": "off",
 
@@ -120,9 +119,6 @@ export default [
 
       // 构造函数首字母大写
       "new-cap": [2, { newIsCap: true, capIsNew: false }],
-
-      // new 操作符使用时需要括号
-      "new-parens": 2,
 
       // 禁止使用 Array 构造函数
       "no-array-constructor": 2,
@@ -169,14 +165,8 @@ export default [
       // 禁止不必要的布尔转换
       "no-extra-boolean-cast": 2,
 
-      // 禁止不必要的括号
-      "no-extra-parens": [2, "functions"],
-
       // 禁止 case 语句落空
       "no-fallthrough": 2,
-
-      // 禁止在数字后面添加小数点
-      "no-floating-decimal": 2,
 
       // 禁止对函数声明重新赋值
       "no-func-assign": 2,
